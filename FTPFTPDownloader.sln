@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBDownloader", "DBDownloader\DBDownloader.csproj", "{054DE01A-2164-4662-9476-73A0723E4EC6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crypt", "Crypt\Crypt.csproj", "{4E80BCC2-EABA-4B0A-82E0-3BF098E4AAAC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptEncoder", "CryptEncoder\CryptEncoder.csproj", "{3C58DE7F-B589-4A59-8236-619F240EA582}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{054DE01A-2164-4662-9476-73A0723E4EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{054DE01A-2164-4662-9476-73A0723E4EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{054DE01A-2164-4662-9476-73A0723E4EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{054DE01A-2164-4662-9476-73A0723E4EC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E80BCC2-EABA-4B0A-82E0-3BF098E4AAAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E80BCC2-EABA-4B0A-82E0-3BF098E4AAAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E80BCC2-EABA-4B0A-82E0-3BF098E4AAAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E80BCC2-EABA-4B0A-82E0-3BF098E4AAAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C58DE7F-B589-4A59-8236-619F240EA582}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C58DE7F-B589-4A59-8236-619F240EA582}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C58DE7F-B589-4A59-8236-619F240EA582}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C58DE7F-B589-4A59-8236-619F240EA582}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

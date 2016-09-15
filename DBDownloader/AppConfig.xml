@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <RegFile>D:\Projects\FTPDownloaderWork\460_197505.reg</RegFile>
+  <OperationalUpdateDirectory>D:\Projects\FTPDownloaderWork\OperUp</OperationalUpdateDirectory>
+  <DBDirectory>D:\Projects\FTPDownloaderWork\DBFiles</DBDirectory>
+  <IsTechnicalRegulationReform>false</IsTechnicalRegulationReform>
+  <ConnectionInitFile>FtpConfiguration.dat</ConnectionInitFile>
+  <UseProxy>true</UseProxy>
+  <UsePassiveFTP>false</UsePassiveFTP>
+  <ProxyAddress />
+  <DelayedStart>0001-01-01T00:00:00</DelayedStart>
+  <KTServices>MpsSvc</KTServices>
+  <ProductVersion>0</ProductVersion>
+  <AutoStart>false</AutoStart>
+  <CountOfRepeat>5</CountOfRepeat>
+  <RepeatDalay>10000</RepeatDalay>
+</ConfigurationModel>

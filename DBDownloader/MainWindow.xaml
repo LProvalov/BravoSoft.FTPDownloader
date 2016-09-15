@@ -1,0 +1,86 @@
+﻿<Window x:Class="DBDownloader.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DBDownloader"
+        mc:Ignorable="d"
+        Title="KodUp" Height="600" Width="1000" MinWidth="1000" MaxWidth="1000" MinHeight="600"
+        ResizeMode="CanResize" Background="#FFF0F0F0" Icon="computing-cloud.png" Closing="Window_Closing">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="45"/>
+            <RowDefinition x:Name="expanderRow" Height="{Binding EXPANDED_ROW_HEIGHT}"/>
+            <RowDefinition x:Name="nntuExpanderRow" Height="{Binding EXPANDED_NNTU_ROW_HEIGHT}"/>
+            <RowDefinition Height="250*"/>
+            <RowDefinition Height="35"/>
+        </Grid.RowDefinitions>
+        <Button x:Name="startButton" Content="Старт" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="startButton_Click" Grid.Column="0" />
+        <Button x:Name="scheduleButton" Content="Расписание" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="scheduleButton_Click" Grid.Column="0" />
+        <Button x:Name="stopButton" Content="Стоп" HorizontalAlignment="Left" Margin="170,10,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="stopButton_Click" Grid.Column="0"/>
+        <Button x:Name="settingsButton" Content="Настройки" HorizontalAlignment="Right" Margin="0,10,10,10" VerticalAlignment="Top" Width="75" Height="23" Click="settingsButton_Click" Grid.Column="1"/>
+        <Expander Grid.Row="1" x:Name="expander" Header="Консоль Информации" Margin="10,0,10,0" Collapsed="expander_Collapsed" Expanded="expander_Expanded" IsExpanded="True" Background="#FFC8C8C8">
+            <Grid>
+                <TextBox x:Name="consoleTextBox" IsReadOnly="True" Margin="0,5,0,0" Padding="10,0,10,0" TextChanged="consoleTextBox_TextChanged" FocusVisualStyle="{x:Null}"/>
+            </Grid>
+        </Expander>
+        <Expander Grid.Row="2" x:Name="nntlExpander" Header="Не нуждаются в обновлении" Margin="10,5,10,10" IsExpanded="True" Collapsed="nntlExpander_Collapsed" Expanded="nntlExpander_Expanded" Background="#FFC8C8C8">
+            <Grid>
+                <Border Margin="0,5,0,0" Background="White" BorderBrush="#FFAAAAAA" BorderThickness="1">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="NNTL_downloadingList" Margin="10, 10, 10, 10">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,5" x:Name="nntuItemBar">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"></ColumnDefinition>
+                                            <ColumnDefinition Width="100"></ColumnDefinition>
+                                            <ColumnDefinition Width="100"></ColumnDefinition>
+                                            <ColumnDefinition Width="100"></ColumnDefinition>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Text="{Binding Title}"/>
+                                        <TextBlock Grid.Column="1" Text="{Binding FileName}"/>
+                                        <!--<TextBlock Grid.Column="2" Text="{Binding Status}"/>-->
+                                        <!--TextBlock Grid.Column="3" Text="{Binding FilesSize}"/>-->
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Expander>
+        <Border Grid.Row="3" Margin="10,0,10,0" Background="White" BorderBrush="#FFAAAAAA" BorderThickness="1">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="downloadingList"  Margin="10, 10, 10, 10">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,5" x:Name="itemBar">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"></ColumnDefinition>
+                                    <ColumnDefinition Width="100"></ColumnDefinition>
+                                    <ColumnDefinition Width="100"></ColumnDefinition>
+                                    <!--<ColumnDefinition Width="40"></ColumnDefinition>-->
+                                    <!--<ColumnDefinition Width="40"></ColumnDefinition>-->
+                                    <!--<ColumnDefinition Width="100"></ColumnDefinition>-->
+                                    <ColumnDefinition Width="100"></ColumnDefinition>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Title}"/>
+                                <TextBlock Grid.Column="1" Text="{Binding FileName}"/>
+                                <TextBlock Grid.Column="2" Text="{Binding Status}"/>
+                                <!--<TextBlock Grid.Column="3" Text="{Binding IsUpdateNedded}"/>
+                            <TextBlock Grid.Column="4" Text="{Binding IsErrorOccured}"/>-->
+                                <!--<ProgressBar Grid.Column="3" Minimum="0" Maximum="100" Value="{Binding Completion}" ></ProgressBar>-->
+                                <TextBlock Grid.Column="3" Text="{Binding FilesSize}"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+        <StatusBar x:Name="mainStatusBar" Grid.Row="4" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Bottom" Height="25">
+            <TextBlock x:Name="statusTextBlock" Text="Status..."></TextBlock>
+        </StatusBar>
+
+    </Grid>
+</Window>
