@@ -1,0 +1,7 @@
+Crypt/bin/
+CryptEncoder/bin/
+CryptEncoder/obj/
+DBDownloader/bin/
+DBDownloader/obj/
+packages/
+Crypt/obj/
