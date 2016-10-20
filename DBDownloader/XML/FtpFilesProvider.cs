@@ -33,6 +33,10 @@ namespace DBDownloader.XML
         public FileInfo GetFile(string destinationFilePath, string sourcePath)
         {
             FileInfo destinationFile = new FileInfo(destinationFilePath);
+            if (destinationFile.Exists) {
+                destinationFile.Delete();
+                destinationFile.Refresh();
+            }
             Uri sourceUri = new Uri(sourcePath);
             FTPDownloader downloader =
                 new FTPDownloader(credential, destinationFile, sourceUri);
@@ -62,6 +66,11 @@ namespace DBDownloader.XML
                     configReader.ProductsPath, productFileName);
                 Uri sourceUri = new Uri(sourceFilePath);
 
+                if (destinationFile.Exists)
+                {
+                    destinationFile.Delete();
+                    destinationFile.Refresh();
+                }
                 FTPDownloader downloader =
                     new FTPDownloader(credential, destinationFile, sourceUri);
                 downloader.UsePassiveFTP = usePassiveFtp;
