@@ -62,7 +62,7 @@ namespace DBDownloader.FTP
             if (timeout > 0) webRequest.Timeout = timeout;
             if (useProxy)
             {
-                webRequest.Proxy = string.IsNullOrEmpty(proxyAddress) ? new WebProxy() : new WebProxy(proxyAddress);
+                webRequest.Proxy = string.IsNullOrEmpty(proxyAddress) ? GlobalProxySelection.GetEmptyWebProxy() : new WebProxy(proxyAddress);
             }
             webRequest.Method = ftpMethod;
             return webRequest;
@@ -77,6 +77,7 @@ namespace DBDownloader.FTP
             if (path[0] != '/') path = "/" + path;
 
             FtpWebRequest request = CreateWebRequest(path, WebRequestMethods.Ftp.ListDirectoryDetails);
+            
             using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
             {
                 string content = string.Empty;
