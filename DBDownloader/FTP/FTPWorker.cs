@@ -64,25 +64,6 @@ namespace DBDownloader.FTP
                 {
                     filesDict.Add(item.Name, new FtpFileInfo() { Length = (long)item.Length, FileName = item.Name });
                 }
-
-                //FtpWebRequest request = CreateRequest(dbDirUri, WebRequestMethods.Ftp.ListDirectoryDetails);
-                //response = request.GetResponse() as FtpWebResponse;
-                //using (StreamReader sr = new StreamReader(response.GetResponseStream()))
-                //{
-                //    while (!sr.EndOfStream)
-                //    {
-                //        string linestr = sr.ReadLine();
-                //        Log.WriteTrace("{0}", linestr);
-                //        string[] lineStrParts = linestr.Split(new char[] { ' ', '\t' })
-                //            .Where(a => { return !string.IsNullOrEmpty(a); }).ToArray();
-                //        long length = 0;
-
-                //        length = long.Parse(lineStrParts[lineStrParts.Length - 5]);
-                //        string fileName = lineStrParts[lineStrParts.Length - 1];
-                //        filesDict.Add(fileName, new FtpFileInfo() { Length = length, FileName = fileName });
-                //    }
-                //}
-
             }
             catch(WebException wex)
             {

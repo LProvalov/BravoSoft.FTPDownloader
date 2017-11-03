@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using DBDownloader.MainLogger;
 using DBDownloader.Models;
 using DBDownloader.ConfigReader;
+using System.IO;
 
 namespace DBDownloader
 {
@@ -16,12 +17,15 @@ namespace DBDownloader
     {
         public readonly double EXPANDED_ROW_HEIGHT = 120;
         public readonly double EXPANDED_NNTU_ROW_HEIGHT = 220;
+        private readonly string CONFIG_FILE_STORAGE =
+            string.Format(@"{0}", Directory.GetCurrentDirectory());
 
         private delegate void NoArgDelegate();
         private delegate void StringArgDelegate(string str);
         private delegate void StatusArgDelegate(Status status);
         
         private Configuration configuration;
+        private FtpConfiguration ftpConfiguration;
         private readonly string configurationPath = "AppConfig.xml";
         private SchedulerModel schedulerModel;
 
@@ -32,8 +36,8 @@ namespace DBDownloader
             {
                 if (_downloaderManager == null) _downloaderManager =
                         configuration.UseProxy ?
-                        new DownloaderManager(configuration, schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
-                        new DownloaderManager(configuration, schedulerModel);
+                        new DownloaderManager(configuration, ftpConfiguration, schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
+                        new DownloaderManager(configuration, ftpConfiguration, schedulerModel);
                 return this._downloaderManager;
             }
         }
@@ -60,6 +64,11 @@ namespace DBDownloader
             configuration = new Configuration(configurationPath);
             configuration.LoadConfiguration();
 
+            FileInfo configFile = new FileInfo(
+                    string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, configuration.ConnectionInitFile));
+            if (!configFile.Exists) throw new Exception("Config file does not found.");
+
+            this.ftpConfiguration = new FtpConfiguration(configFile.FullName);
             if (configuration.DelayedStart > DateTime.Now)
             {
                 schedulerModel.StartTime = configuration.DelayedStart;
@@ -198,7 +207,15 @@ namespace DBDownloader
         {
             Log.WriteInfo("settingsWindowShow");
             this.IsEnabled = false;
-            Settings settingsWindow = new Settings(configuration);
+            var items = this.ftpConfiguration.ProductModelItems;
+            String name1 = "Version 1";
+            String name2 = "Version 2";
+            if (items.Count == 2)
+            {
+                name1 = items[0].ProductFileNameUI;
+                name2 = items[1].ProductFileNameUI;
+            }
+            Settings settingsWindow = new Settings(configuration, name1, name2);
             settingsWindow.Left = this.Left + this.Width / 2 - settingsWindow.Width / 2;
             settingsWindow.Top = this.Top + this.Height / 2 - settingsWindow.Height / 2;
             bool? dialogResult = settingsWindow.ShowDialog();

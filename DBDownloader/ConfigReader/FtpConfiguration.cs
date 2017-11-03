@@ -42,7 +42,7 @@ namespace DBDownloader.ConfigReader
         }
 
         public string FtpSourcePath { get { return model.FtpSourcePath; } }
-        public IList<string> ProductFilesPath { get { return model.ProductFileNames; } }
+        public IList<ProductVersionModel> ProductModelItems { get { return model.ProductModelItems; } }
         public string AutocomplectsPath
         {
             get

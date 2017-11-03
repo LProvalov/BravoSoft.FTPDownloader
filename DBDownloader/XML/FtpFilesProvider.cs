@@ -56,14 +56,14 @@ namespace DBDownloader.XML
             FtpConfiguration configReader)
         {
             List<FileInfo> productFiles = new List<FileInfo>();
-            foreach (string productFileName in configReader.ProductFilesPath)
+            foreach (var productModelItem in configReader.ProductModelItems)
             {
                 string productFilePath = string.Format(@"{0}\{1}",
-                    destinationDirectory, productFileName);
+                    destinationDirectory, productModelItem.ProductFileName);
                 FileInfo destinationFile = new FileInfo(productFilePath);
 
                 string sourceFilePath = string.Format(@"{0}/{1}",
-                    configReader.ProductsPath, productFileName);
+                    configReader.ProductsPath, productModelItem.ProductFileName);
                 Uri sourceUri = new Uri(sourceFilePath);
 
                 if (destinationFile.Exists)

@@ -93,7 +93,7 @@ namespace DBDownloader
         private readonly string CONFIG_FILE_STORAGE =
             string.Format(@"{0}", Directory.GetCurrentDirectory());
 
-        public DownloaderManager(Configuration configuration, SchedulerModel scheduler,
+        public DownloaderManager(Configuration configuration, FtpConfiguration ftpConfiguration, SchedulerModel scheduler,
             bool useProxy = false, string proxyAddress = "")
         {
             this.configuration = configuration;
@@ -101,6 +101,7 @@ namespace DBDownloader
             this.Status = Status.Stopped;
             this.useProxy = useProxy;
             this.proxyAddress = proxyAddress;
+            this.ftpConfiguration = ftpConfiguration;
             downloadingItems = new ObservableCollection<DownloadingItem>();
             NNTD_DownloadingItems = new ObservableCollection<DownloadingItem>();
             FileInfo reportinfo = new FileInfo(REPORT_PATH);
@@ -143,7 +144,7 @@ namespace DBDownloader
 
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Product files parsing..."));
             ProductsParser productParser = new ProductsParser(productFiles);
-            string productListName = ftpConfiguration.ProductFilesPath[configuration.ProductVersion];
+            string productListName = ftpConfiguration.ProductModelItems[configuration.ProductVersion].ProductFileName;
             return productParser.GetDBList(productIds, productListName);
         }
 
@@ -153,14 +154,7 @@ namespace DBDownloader
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Initializating..."));
 
             Log.WriteTrace("Initialize - config file");
-            FileInfo configFile = new FileInfo(
-                    string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, configuration.ConnectionInitFile));
-            if (!configFile.Exists) throw new Exception("Config file does not found.");
-
             Log.WriteTrace("Initialize - configuration reader");
-
-            ftpConfiguration = new FtpConfiguration(configFile.FullName);
-
             Log.WriteTrace("Initialize - reg file search");
             regFileSearch = new RegFileSearch(configuration.RegFileInfo);
 
@@ -181,7 +175,9 @@ namespace DBDownloader
                 loadingManager.ProxyAddress = proxyAddress;
             }
             loadingManager.ErrorOccurred += LoadingManager_ErrorOccurred;
+
             Log.WriteTrace("Initialize - ftp worker");
+
             ftpWorker = new FTPWorker(networkCredential, useProxy, proxyAddress, configuration.UsePassiveFTP);
             string dbUriStr = string.Format(@"{0}//{1}",
                 ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
@@ -193,6 +189,7 @@ namespace DBDownloader
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Getting info about FTP DB files..."));
             ftpWorker.GetFilesDate(dbUriStr);
 
+
             Log.WriteTrace("Initialize - get list of toms");
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Forming downloading queue..."));
             List<string> missingFtpFiles = new List<string>();
@@ -203,9 +200,19 @@ namespace DBDownloader
                 string destinationFileStr = string.Format(@"{0}\{1}",
                     configuration.DBDirectory.FullName,
                     tom.FileName);
-                string sourceFileUrl = string.Format(@"{0}//{1}/{2}",
-                    ftpConfiguration.FtpSourcePath,
-                    ftpConfiguration.DBPath, tom.FileName);
+                string sourceFileUrl;
+                if (String.IsNullOrEmpty(tom.FullPathname))
+                {
+                    sourceFileUrl = string.Format(@"{0}//{1}/{2}",
+                        ftpConfiguration.FtpSourcePath,
+                        ftpConfiguration.DBPath, tom.FileName);
+                }
+                else
+                {
+                    sourceFileUrl = string.Format(@"{0}//{1}/{2}",
+                        ftpConfiguration.FtpSourcePath,
+                        tom.FullPathname, tom.FileName);
+                }
                 FtpFileInfo sourceFileInfo;
 
                 long sourceSize = 0;
@@ -352,7 +359,7 @@ namespace DBDownloader
                         if (ProcessingEndedEvent != null)
                             ProcessingEndedEvent.Invoke(this, new EventArgs());
                         return false;
-                    }                    
+                    }
                 }
             }
             return true;
@@ -409,7 +416,7 @@ namespace DBDownloader
                     foreach (FileInfo file in configuration.OperationalUpdateDirectory.EnumerateFiles())
                     {
                         Log.WriteTrace("Delete file: {0}", file.FullName);
-                        if(file.Exists) file.Delete();
+                        if (file.Exists) file.Delete();
                     }
 
                     string ftphost = ftpConfiguration.FtpSourcePath;
@@ -429,7 +436,7 @@ namespace DBDownloader
                         {
                             InputMessage(string.Format("Downloading operup file: {0}", item.Name));
                             FileInfo destinationFile = new FileInfo(string.Format(@"{0}\{1}", configuration.OperationalUpdateDirectory.FullName, item.Name));
-                            Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}",ftpConfiguration.FtpSourcePath,  ftpConfiguration.ClearFolder, item.Name));
+                            Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}", ftpConfiguration.FtpSourcePath, ftpConfiguration.ClearFolder, item.Name));
                             FTPDownloader itemDownloader = new FTPDownloader(networkCredential, destinationFile, sourceFile);
                             itemDownloader.UsePassiveFTP = configuration.UsePassiveFTP;
                             if (useProxy)

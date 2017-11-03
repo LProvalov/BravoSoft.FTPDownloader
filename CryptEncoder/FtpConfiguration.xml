@@ -1,13 +1,23 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <FtpConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <FtpSourcePath>ftp://89.109.33.139</FtpSourcePath>
-  <DBPath>testbase</DBPath>
+  <DBPath>base</DBPath>
   <AutocomplectsPath>base/xml</AutocomplectsPath>
   <ProductsPath>base/xml</ProductsPath>
-  <ProductFileNames>Products_6.3_1627.xml</ProductFileNames>
-  <ProductFileNames>Products_6.4_1627.xml</ProductFileNames>
+  <ProductModelItems>
+    <ProductFileName>Products_6.3.xml</ProductFileName>
+    <ProductFileNameUI>Products v6.4.1</ProductFileNameUI>
+    <ProductBasePath>base</ProductBasePath>
+  </ProductModelItems>
+  <ProductModelItems>
+    <ProductFileName>Products_6.4.xml</ProductFileName>
+    <ProductFileNameUI>Products v6.4.0</ProductFileNameUI>
+    <ProductBasePath>base</ProductBasePath>
+  </ProductModelItems>
+  <ProductFileNames>Products_6.3.xml</ProductFileNames>
+  <ProductFileNames>Products_6.4.xml</ProductFileNames>
   <ReportsPath>update_logs</ReportsPath>
-  <User>signal</User>
-  <Password>fvu90m</Password>
+  <User>user1</User>
+  <Password>6puVBNdX</Password>
   <ClearFolder>operup/new</ClearFolder>
 </FtpConfigurationModel>

@@ -58,10 +58,10 @@
                 <CheckBox x:Name="trrCheckBox" Content="Копировать информационный продукт 'Реформа тех.регулирования'"
                           HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                 <RadioButton Grid.Row="1" Margin="10,10,0,0" GroupName="ProductVersion" 
-                             Name="productVersionRB1" Content="Products v6.3" IsChecked="True">
+                             Name="productVersionRB1" Content="{Binding ProductVersionRB1Content}" IsChecked="True">
                 </RadioButton>
                 <RadioButton Grid.Row="1" Margin="10,35,0,0" GroupName="ProductVersion" 
-                             Name="productVersionRB2" Content="Products v6.4" IsChecked="False">
+                             Name="productVersionRB2" Content="{Binding ProductVersionRB2Content}" IsChecked="False">
                 </RadioButton>
             </Grid>
         </GroupBox>
