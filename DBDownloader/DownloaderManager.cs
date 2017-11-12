@@ -181,14 +181,12 @@ namespace DBDownloader
             ftpWorker = new FTPWorker(networkCredential, useProxy, proxyAddress, configuration.UsePassiveFTP);
             string dbUriStr = string.Format(@"{0}//{1}",
                 ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
-            Dictionary<string, FtpFileInfo> sizeDBDictionary =
-                ftpWorker.GetDBListWithSize(new Uri(dbUriStr));
+            Dictionary<string, FtpFileInfo> sizeDBDictionary = ftpWorker.GetDBListWithSize(new Uri(dbUriStr));
             if (sizeDBDictionary.Count == 0) throw new Exception(
                 string.Format("Can't get information about db files in current Url: {0}", dbUriStr));
 
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Getting info about FTP DB files..."));
-            ftpWorker.GetFilesDate(dbUriStr);
-
+            //ftpWorker.GetFilesDate(dbUriStr);
 
             Log.WriteTrace("Initialize - get list of toms");
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Forming downloading queue..."));
@@ -213,13 +211,13 @@ namespace DBDownloader
                         ftpConfiguration.FtpSourcePath,
                         tom.FullPathname, tom.FileName);
                 }
-                FtpFileInfo sourceFileInfo;
-
                 long sourceSize = 0;
                 bool isUpdateNeeded = false;
                 DateTime creationFileDateTime = new DateTime();
                 FileInfo destinationFile = new FileInfo(destinationFileStr);
-                if (sizeDBDictionary.TryGetValue(tom.FileName, out sourceFileInfo))
+
+                FtpFileInfo sourceFileInfo;
+                if (sizeDBDictionary.TryGetValue(sourceFileUrl, out sourceFileInfo))
                 {
                     sourceSize = sourceFileInfo.Length;
                     creationFileDateTime = sourceFileInfo.LastModified;
@@ -232,7 +230,34 @@ namespace DBDownloader
                         isUpdateNeeded = true;
                     }
                 }
-                else
+                else if (!String.IsNullOrEmpty(tom.FullPathname))
+                {
+                    var sourceFilePathString = string.Format(@"{0}//{1}",
+                        ftpConfiguration.FtpSourcePath,
+                        tom.FullPathname);
+                    ftpWorker.GetDBListWithSize(new Uri(sourceFilePathString));
+                    //ftpWorker.GetFilesDate(sourceFilePathString);
+                    if (sizeDBDictionary.TryGetValue(sourceFileUrl, out sourceFileInfo))
+                    {
+                        sourceSize = sourceFileInfo.Length;
+                        creationFileDateTime = sourceFileInfo.LastModified;
+                        if (!destinationFile.Exists) isUpdateNeeded = true;
+                        else if (sourceFileInfo.LastModified.Date >= destinationFile.CreationTime.Date ||
+                            sourceFileInfo.LastModified.Date < destinationFile.CreationTime.Date && (sourceSize != 0 && destinationFile.Length != sourceSize))
+                        {
+                            Log.WriteTrace("File {0} needed to be updated, destDate :{1}, sourceDate :{2}, sourceSize: {3}, destLength: {4}",
+                                tom.FileName, destinationFile.CreationTime.Date, sourceFileInfo.LastModified.Date, sourceSize, destinationFile.Length);
+                            isUpdateNeeded = true;
+                        }
+                    }
+                    else
+                    {
+                        Log.WriteTrace("{0} no file on FTP", tom.FileName);
+                        missingFtpFiles.Add(tom.FileName);
+                        isUpdateNeeded = false;
+                    }
+                }
+                else 
                 {
                     Log.WriteTrace("{0} no file on FTP", tom.FileName);
                     missingFtpFiles.Add(tom.FileName);

@@ -62,7 +62,9 @@ namespace DBDownloader.FTP
                 FTPClient.FileStruct[] listDirectory = _ftpClient.ListDirectory(dbDirUri.PathAndQuery);
                 foreach(var item in listDirectory)
                 {
-                    filesDict.Add(item.Name, new FtpFileInfo() { Length = (long)item.Length, FileName = item.Name });
+                    var filePath = string.Format("{0}/{1}", dbDirUri.OriginalString, item.Name);
+                    filesDict.Add(filePath, new FtpFileInfo() { Length = (long)item.Length, FileName = item.Name });
+                    GetFileDate(filePath);
                 }
             }
             catch(WebException wex)
@@ -88,7 +90,7 @@ namespace DBDownloader.FTP
             Log.WriteInfo("FTPWorker GetFilesDate, filesCount:{0}", filesDict.Values.Count);
             foreach (var file in filesDict)
             {
-                Uri uri = new Uri(string.Format(@"{0}/{1}", dbDirUri, file.Key));
+                Uri uri = new Uri(file.Key);
                 FtpWebRequest request = CreateRequest(uri, WebRequestMethods.Ftp.GetDateTimestamp);
                 try
                 {
@@ -101,6 +103,27 @@ namespace DBDownloader.FTP
                 {
                     Log.WriteError("FTPWorker GetFilesDate {0} Error: {1}", file.Key, ex.Message);
                 }
+            }
+        }
+
+        public void GetFileDate(string dbPathUri)
+        {
+            Uri uri = new Uri(dbPathUri);
+            FtpWebRequest request = CreateRequest(uri, WebRequestMethods.Ftp.GetDateTimestamp);
+            try
+            {
+                using (FtpWebResponse response = request.GetResponse() as FtpWebResponse)
+                {
+                    FtpFileInfo ftpFileInfo = null;
+                    if(filesDict.TryGetValue(dbPathUri, out ftpFileInfo))
+                    {
+                        filesDict[dbPathUri].LastModified = response.LastModified;
+                    }                    
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.WriteError("FTPWorker GetFileDate {0} Error: {1}", dbPathUri, ex.Message);
             }
         }
 
