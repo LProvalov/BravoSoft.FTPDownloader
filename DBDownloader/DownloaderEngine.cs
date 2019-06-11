@@ -13,6 +13,7 @@ using DBDownloader.XML.Models.Autocomplects;
 using DBDownloader.XML.Models.Products;
 using DBDownloader.FTP;
 using DBDownloader.MainLogger;
+using DBDownloader.WinServices;
 using System.Text;
 
 namespace DBDownloader
@@ -24,7 +25,7 @@ namespace DBDownloader
         Stopped,
         StartWaiting
     }
-    public class DownloaderManager
+    public class DownloaderEngine
     {
         private Status _status;
         public Status Status
@@ -93,7 +94,7 @@ namespace DBDownloader
         private readonly string CONFIG_FILE_STORAGE =
             string.Format(@"{0}", Directory.GetCurrentDirectory());
 
-        public DownloaderManager(Configuration configuration, FtpConfiguration ftpConfiguration, SchedulerModel scheduler,
+        public DownloaderEngine(Configuration configuration, FtpConfiguration ftpConfiguration, SchedulerModel scheduler,
             bool useProxy = false, string proxyAddress = "")
         {
             this.configuration = configuration;
@@ -524,7 +525,7 @@ namespace DBDownloader
 
         public Task StartAsync()
         {
-            Log.WriteInfo("DownloaderManager StartAsync {0}", DateTime.Now);
+            Log.WriteInfo("DownloaderEngine StartAsync {0}", DateTime.Now);
             if (Status == DBDownloader.Status.Stopped)
             {
                 processingTask = Task.Factory.StartNew(Processing);

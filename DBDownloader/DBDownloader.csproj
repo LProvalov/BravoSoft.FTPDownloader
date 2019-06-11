@@ -114,7 +114,7 @@
     <Compile Include="ConfigReader\FtpConfiguration.cs" />
     <Compile Include="ConfigReader\FtpConfigurationModel.cs" />
     <Compile Include="ConfigReader\ProductVersionModel.cs" />
-    <Compile Include="DownloaderManager.cs" />
+    <Compile Include="DownloaderEngine.cs" />
     <Compile Include="FTP\DownloadFile.cs" />
     <Compile Include="FTP\FTPClient.cs" />
     <Compile Include="FTP\FTPDownloader.cs" />
