@@ -17,11 +17,8 @@ namespace DBDownloader.FTP
             new Dictionary<string, DownloadFile>();
 
         private bool isLoading = false;
-        private bool useProxy = false;
-        private string proxyAddress = string.Empty;
         private Uri reportDirUrl;
         private FTPWorker ftpWorker;
-        private Configuration configuration;
 
         private bool isLoadedEnd = false;
         public bool IsLoadedEnd { get { return isLoadedEnd; } }
@@ -30,25 +27,13 @@ namespace DBDownloader.FTP
         public event EventHandler DownloadingStopped;
         public event ErrorEventHandler ErrorOccurred;
         
-        public LoadingManager(NetworkCredential networkCredential, Uri reportDirUrl, Configuration configuration)
+        public LoadingManager(NetworkCredential networkCredential, Uri reportDirUrl)
         {
             this.networkCredential = networkCredential;
             this.reportDirUrl = reportDirUrl;
-            this.configuration = configuration;
-            ftpWorker = new FTPWorker(networkCredential, useProxy, proxyAddress, configuration.UsePassiveFTP);
+            ftpWorker = new FTPWorker(networkCredential);
         }
-
-        public bool UseProxy
-        {
-            get { return useProxy; }
-            set { useProxy = value; }
-        }
-        public string ProxyAddress
-        {
-            get { return proxyAddress; }
-            set { proxyAddress = value; }
-        }
-       
+               
         public bool IsLoading { get { return isLoading; } }
 
         public IEnumerable<FileStatus> GetStatuses()
@@ -104,11 +89,12 @@ namespace DBDownloader.FTP
             // what be include DownloadingItem Id, FileStatus object and some additional information.
             if (!isLoading)
             {
+                Configuration configuration = Configuration.Instance;
                 FileInfo destinationFileInfo = destinationFile;
                 Uri sourceFileUri = new Uri(sourceFileUrl);
                 DownloadFile df = new DownloadFile(networkCredential,
                     destinationFileInfo, sourceFileUri,
-                    useProxy, proxyAddress, configuration.UsePassiveFTP,
+                    configuration.UseProxy, configuration.ProxyAddress, configuration.UsePassiveFTP,
                     creationFileDateTime,
                     isUpdateNeeded, sourceSize);
                 df.errorEvent += ThrowError;

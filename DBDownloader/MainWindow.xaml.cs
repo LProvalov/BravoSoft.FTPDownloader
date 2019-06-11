@@ -7,6 +7,7 @@ using DBDownloader.MainLogger;
 using DBDownloader.Models;
 using DBDownloader.ConfigReader;
 using System.IO;
+using DBDownloader.LOG;
 
 namespace DBDownloader
 {
@@ -27,27 +28,23 @@ namespace DBDownloader
 
         public readonly double EXPANDED_ROW_HEIGHT = 120;
         public readonly double EXPANDED_NNTU_ROW_HEIGHT = 220;
-        private readonly string CONFIG_FILE_STORAGE =
-            string.Format(@"{0}", Directory.GetCurrentDirectory());
-
+        
         private delegate void NoArgDelegate();
         private delegate void StringArgDelegate(string str);
         private delegate void StatusArgDelegate(Status status);
         
-        //private Configuration configuration;
-        private FtpConfiguration ftpConfiguration;
         private SchedulerModel schedulerModel;
 
         private DownloaderEngine _downloaderEngine;
-        private DownloaderEngine DownloaderEngine
+        private DownloaderEngine DownloadEngine
         {
             get
             {
                 Configuration configuration = Configuration.GetInstance();
                 if (_downloaderEngine == null) _downloaderEngine =
                         configuration.UseProxy ?
-                        new DownloaderEngine(configuration, ftpConfiguration, schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
-                        new DownloaderEngine(configuration, ftpConfiguration, schedulerModel);
+                        new DownloaderEngine(schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
+                        new DownloaderEngine(schedulerModel);
                 return this._downloaderEngine;
             }
         }
@@ -56,6 +53,14 @@ namespace DBDownloader
 
         public MainWindow()
         {
+            Messenger.Instance.MessageBroadcasted += (obj, arg) =>
+            {
+                this.consoleTextBox.Dispatcher.BeginInvoke(
+                    new StringArgDelegate(AddTextToConsole),
+                    System.Windows.Threading.DispatcherPriority.Background,
+                    arg.Text);
+            };
+
             Log.WriteInfo("MainWindow");
 
             Log.WriteTrace("Initialize main window components");
@@ -74,17 +79,12 @@ namespace DBDownloader
             Configuration configuration = Configuration.GetInstance();
             configuration.LoadConfiguration();
 
-            FileInfo configFile = new FileInfo(
-                    string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, configuration.ConnectionInitFile));
-            if (!configFile.Exists) throw new Exception("Config file does not found.");
-
-            this.ftpConfiguration = new FtpConfiguration(configFile.FullName);
             if (configuration.DelayedStart > DateTime.Now)
             {
                 schedulerModel.StartTime = configuration.DelayedStart;
             }
 
-            DownloaderManagerInitialization();
+            DownloadEngineInitialization();
             fetcher = new NoArgDelegate(this.FetchDownloaderManager);
             fetcher.BeginInvoke(null, null);
 
@@ -105,9 +105,9 @@ namespace DBDownloader
             }
         }
 
-        private void DownloaderManagerInitialization()
+        private void DownloadEngineInitialization()
         {         
-            DownloaderEngine.ProcessingEndedEvent += (obj, args) =>
+            DownloadEngine.ProcessingEndedEvent += (obj, args) =>
             {
                 this.mainGrid.Dispatcher.BeginInvoke(
                     new NoArgDelegate(() => { ButtonsEnableDisable(ButtonsEnable.Settings | ButtonsEnable.Start | ButtonsEnable.Schedule); }),
@@ -115,15 +115,16 @@ namespace DBDownloader
                     null);
             };
 
-            DownloaderEngine.SendConsoleMessage += (obj, arg) =>
+            /*
+            DownloadEngine.SendConsoleMessage += (obj, arg) =>
             {
                 this.consoleTextBox.Dispatcher.BeginInvoke(
                     new StringArgDelegate(AddTextToConsole),
                     System.Windows.Threading.DispatcherPriority.Background,
                     arg.Text);
-            };
+            };*/
 
-            DownloaderEngine.StatusChangeEvent += (obj, args) =>
+            DownloadEngine.StatusChangeEvent += (obj, args) =>
             {
                 this.statusTextBlock.Dispatcher.BeginInvoke(
                     new StatusArgDelegate(UpdateStatus),
@@ -147,12 +148,12 @@ namespace DBDownloader
         private void UpdateDownloadingList()
         {
             // TODO: change window controls update process.
-            DownloaderEngine.UpdateDownloadingItems();
+            DownloadEngine.UpdateDownloadingItems();
             downloadingList.ItemsSource = null;
-            downloadingList.ItemsSource = DownloaderEngine.DownloadingItems;
+            downloadingList.ItemsSource = DownloadEngine.DownloadingItems;
 
             NNTL_downloadingList.ItemsSource = null;
-            NNTL_downloadingList.ItemsSource = DownloaderEngine.NNTD_DownloadingItems;
+            NNTL_downloadingList.ItemsSource = DownloadEngine.NNTD_DownloadingItems;
         }
 
         private void settingsButton_Click(object sender, RoutedEventArgs e)
@@ -167,8 +168,8 @@ namespace DBDownloader
         {
             ButtonsEnableDisable(ButtonsEnable.Stop);
 
-            DownloaderEngine.DelayedStart = Configuration.GetInstance().DelayedStart;
-            DownloaderEngine.StartAsync();
+            DownloadEngine.DelayedStart = Configuration.GetInstance().DelayedStart;
+            DownloadEngine.StartAsync();
         }
 
         private void scheduleButton_Click(object sender, RoutedEventArgs e)
@@ -185,8 +186,8 @@ namespace DBDownloader
                 configuration.DelayedStart = DateTime.Now.AddMinutes(schedulerModel.DelayedMins);
                 configuration.SaveConfiguration();
                 ButtonsEnableDisable(ButtonsEnable.Stop);
-                DownloaderEngine.DelayedStart = configuration.DelayedStart;
-                DownloaderEngine.StartAsync();
+                DownloadEngine.DelayedStart = configuration.DelayedStart;
+                DownloadEngine.StartAsync();
             }
             else
             {
@@ -199,14 +200,14 @@ namespace DBDownloader
         {
             Log.WriteInfo("stop button click");
             stopButton.IsEnabled = false;
-            DownloaderEngine.Stop();
+            DownloadEngine.Stop();
         }
 
         private void settingsWindowShow()
         {
             Log.WriteInfo("settingsWindowShow");
             this.IsEnabled = false;
-            var items = this.ftpConfiguration.ProductModelItems;
+            var items = FtpConfiguration.Instance.ProductModelItems;
             String name1 = "Version 1";
             String name2 = "Version 2";
             if (items.Count == 2)
@@ -305,7 +306,7 @@ namespace DBDownloader
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Log.WriteInfo("Close main window.");
-            if (this.DownloaderEngine.Status != Status.Stopped)
+            if (this.DownloadEngine.Status != Status.Stopped)
             {
                 string msg = "Происходит обновление данных, завершить?";
                 MessageBoxResult result =
@@ -321,8 +322,8 @@ namespace DBDownloader
                 else
                 {
                     Log.WriteInfo("Stopping downloading manager.");
-                    DownloaderEngine.Stop();
-                    while (DownloaderEngine.Status != Status.Stopped) Thread.Sleep(500);
+                    DownloadEngine.Stop();
+                    while (DownloadEngine.Status != Status.Stopped) Thread.Sleep(500);
                 }
             }
         }

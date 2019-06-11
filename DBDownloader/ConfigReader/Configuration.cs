@@ -22,6 +22,11 @@ namespace DBDownloader.ConfigReader
             }
             return _instance;
         }
+        public static Configuration Instance
+        {
+            get { return GetInstance(); }
+        }
+
         private Configuration(string configurationPath)
         {
             model = new ConfigurationModel();

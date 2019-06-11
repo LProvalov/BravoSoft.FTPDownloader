@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
-
-using System.Net.Mail;
 
 using DBDownloader.MainLogger;
+using DBDownloader.ConfigReader;
 
 namespace DBDownloader.FTP
 {
@@ -27,12 +25,12 @@ namespace DBDownloader.FTP
 
         private Dictionary<string, FtpFileInfo> filesDict;
 
-        public FTPWorker(NetworkCredential credential, bool useProxy, string proxyAddress, bool usePassiveFTP)
+        public FTPWorker(NetworkCredential credential)
         {
             this.credential = credential;
-            this.useProxy = useProxy;
-            this.proxyAddress = proxyAddress;
-            this.usePassiveFTP = usePassiveFTP;
+            this.useProxy = Configuration.Instance.UseProxy;
+            this.proxyAddress = Configuration.Instance.UseProxy ? Configuration.Instance.ProxyAddress : "";
+            this.usePassiveFTP = Configuration.Instance.UsePassiveFTP;
             filesDict = new Dictionary<string, FtpFileInfo>();
         }
 

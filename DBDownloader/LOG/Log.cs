@@ -6,6 +6,13 @@ namespace DBDownloader.MainLogger
     {
         private static NLog.Logger _logger = LogManager.GetCurrentClassLogger();
 
+        public enum LogType
+        {
+            Info,
+            Trace,
+            Error
+        }
+
         public static void WriteInfo(string message)
         {
             _logger.Info(message);

@@ -15,6 +15,8 @@ using DBDownloader.FTP;
 using DBDownloader.MainLogger;
 using DBDownloader.WinServices;
 using System.Text;
+using DBDownloader.Events;
+using DBDownloader.LOG;
 
 namespace DBDownloader
 {
@@ -50,31 +52,8 @@ namespace DBDownloader
         public event EventHandler<StatusEntryArgs> StatusChangeEvent;
         private Task processingTask;
 
-        // TODO: Replace event classes to another place.
-        public class StringEntryEventArgs : EventArgs
-        {
-            private readonly string str;
-            public StringEntryEventArgs(string str)
-            {
-                this.str = str;
-            }
-            public string Text { get { return str; } }
-        }
-        public class StatusEntryArgs : EventArgs
-        {
-            private readonly Status _status;
-            public StatusEntryArgs(Status status)
-            {
-                this._status = status;
-            }
-            public Status Status { get { return _status; } }
-        }
-
         public event EventHandler ProcessingEndedEvent;
-        public event EventHandler<StringEntryEventArgs> SendConsoleMessage;
 
-        private Configuration configuration;
-        private FtpConfiguration ftpConfiguration;
         private SchedulerModel scheduler;
         private RegFileSearch regFileSearch;
 
@@ -85,7 +64,6 @@ namespace DBDownloader
         private bool useProxy = false;
         private string proxyAddress = string.Empty;
         private CancellationTokenSource waitingStartCts;
-        private bool isStopServicesNeeded = false;
 
         private string reportUri;
         private readonly string REPORT_PATH = "report.txt";
@@ -94,15 +72,13 @@ namespace DBDownloader
         private readonly string CONFIG_FILE_STORAGE =
             string.Format(@"{0}", Directory.GetCurrentDirectory());
 
-        public DownloaderEngine(Configuration configuration, FtpConfiguration ftpConfiguration, SchedulerModel scheduler,
+        public DownloaderEngine(SchedulerModel scheduler,
             bool useProxy = false, string proxyAddress = "")
         {
-            this.configuration = configuration;
             this.scheduler = scheduler;
             this.Status = Status.Stopped;
             this.useProxy = useProxy;
             this.proxyAddress = proxyAddress;
-            this.ftpConfiguration = ftpConfiguration;
             downloadingItems = new ObservableCollection<DownloadingItem>();
             NNTD_DownloadingItems = new ObservableCollection<DownloadingItem>();
             FileInfo reportinfo = new FileInfo(REPORT_PATH);
@@ -117,33 +93,35 @@ namespace DBDownloader
             Log.WriteInfo("DownloaderManager GetListOfToms");
             FtpFilesProvider ftpFilesProvider =
                 useProxy ?
-                new FtpFilesProvider(networkCredential, useProxy, configuration.UsePassiveFTP, proxyAddress) :
-                new FtpFilesProvider(networkCredential, usePassiveFTP: configuration.UsePassiveFTP);
+                new FtpFilesProvider(networkCredential, useProxy, Configuration.GetInstance().UsePassiveFTP, proxyAddress) :
+                new FtpFilesProvider(networkCredential, usePassiveFTP: Configuration.Instance.UsePassiveFTP);
 
             string autocomplectsFileName =
                 string.Format(AUTOCOMPLECTS_FILENAME_TEMPLATE, regFileSearch.DistributorCode);
 
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("autocomplect file downloading..."));
+            Messenger.Instance.Write("autocomplect file downloading...", Messenger.Type.ApplicationBroadcast);
+            FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
+
             FileInfo autoComplectFileInfo = ftpFilesProvider.GetFile(
                 string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, autocomplectsFileName),
                 string.Format(@"{0}/{1}", ftpConfiguration.AutocomplectsPath, autocomplectsFileName));
 
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Product files downloading..."));
+            Messenger.Instance.Write("Product files downloading...", Messenger.Type.ApplicationBroadcast);
             IEnumerable<FileInfo> productFiles =
                 ftpFilesProvider.GetProductsFiles(CONFIG_FILE_STORAGE, ftpConfiguration);
 
             FileInfo[] autoComplectsFiles = new FileInfo[] { autoComplectFileInfo };
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Autocomplect file parsing..."));
+            Messenger.Instance.Write("Autocomplect file parsing...", Messenger.Type.ApplicationBroadcast);
             AutoComplectsParser autoComplectsParser =
                 new AutoComplectsParser(autoComplectsFiles, regFileSearch.ClientCode);
             IList<AutoComplect> productIds = autoComplectsParser.GetProductKeys();
             productIds.Add(new AutoComplect() { Ref = regFileSearch.ClientCode, Kompl = 12000 });
-            if (configuration.IsTechnicalRegulationReform)
+            if (Configuration.Instance.IsTechnicalRegulationReform)
             {
                 productIds.Add(new AutoComplect() { Ref = regFileSearch.ClientCode, Kompl = 0 });
             }
 
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Product files parsing..."));
+            Messenger.Instance.Write("Product files parsing...", Messenger.Type.ApplicationBroadcast);
             ProductsParser productParser = new ProductsParser(productFiles);
             string productListName = String.Empty;
             if (ftpConfiguration.ProductModelItems != null && ftpConfiguration.ProductModelItems.Count > 0)
@@ -158,14 +136,10 @@ namespace DBDownloader
 
         private void Initialize()
         {
-            Log.WriteInfo("DownloaderManager Initialize");
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Initializating..."));
+            Messenger.Instance.Write("Download Engine Initializating...", Messenger.Type.ApplicationBroadcast | Messenger.Type.Log, Log.LogType.Info);
+            regFileSearch = new RegFileSearch(Configuration.Instance.RegFileInfo);
 
-            Log.WriteTrace("Initialize - config file");
-            Log.WriteTrace("Initialize - configuration reader");
-            Log.WriteTrace("Initialize - reg file search");
-            regFileSearch = new RegFileSearch(configuration.RegFileInfo);
-
+            FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
             networkCredential =
                new NetworkCredential(ftpConfiguration.User, ftpConfiguration.Password);
 
@@ -174,37 +148,31 @@ namespace DBDownloader
             string reportsDir = reportUri + ".txt";
             ReportWriter.AppendString("Клиент ID - {0}. {1}.\n", regFileSearch.ClientCode, DateTime.Now.ToLongTimeString());
 
-            Log.WriteTrace("Initialize - loading manager");
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Loading manager initialization..."));
-            loadingManager = new LoadingManager(networkCredential, new Uri(reportsDir), configuration);
-            if (useProxy)
-            {
-                loadingManager.UseProxy = useProxy;
-                loadingManager.ProxyAddress = proxyAddress;
-            }
+            Messenger.Instance.Write("Loading manager initialization...", Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
+            loadingManager = new LoadingManager(networkCredential, new Uri(reportsDir));
             loadingManager.ErrorOccurred += LoadingManager_ErrorOccurred;
 
             Log.WriteTrace("Initialize - ftp worker");
+            ftpWorker = new FTPWorker(networkCredential);
 
-            ftpWorker = new FTPWorker(networkCredential, useProxy, proxyAddress, configuration.UsePassiveFTP);
             string dbUriStr = string.Format(@"{0}//{1}",
                 ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
             Dictionary<string, FtpFileInfo> sizeDBDictionary = ftpWorker.GetDBListWithSize(new Uri(dbUriStr));
             if (sizeDBDictionary.Count == 0) throw new Exception(
                 string.Format("Can't get information about db files in current Url: {0}", dbUriStr));
 
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Getting info about FTP DB files..."));
+            Messenger.Instance.Write("Getting info about FTP DB files...", Messenger.Type.ApplicationBroadcast);
             //ftpWorker.GetFilesDate(dbUriStr);
 
             Log.WriteTrace("Initialize - get list of toms");
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Forming downloading queue..."));
+            Messenger.Instance.Write("Getting info about FTP DB files...", Messenger.Type.ApplicationBroadcast);
             List<string> missingFtpFiles = new List<string>();
             List<string> downloadedFtpFiles = new List<string>();
 
             foreach (Tom tom in GetListOfToms())
             {
                 string destinationFileStr = string.Format(@"{0}\{1}",
-                    configuration.DBDirectory.FullName,
+                    Configuration.Instance.DBDirectory.FullName,
                     tom.FileName);
                 string sourceFileUrl;
                 if (String.IsNullOrEmpty(tom.FullPathname))
@@ -296,72 +264,9 @@ namespace DBDownloader
             string message = ex.Message;
             if (ex.InnerException != null)
                 message += string.Format(" InnerException:{0}", ex.InnerException.Message);
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs(message));
+            Messenger.Instance.Write(message, Messenger.Type.ApplicationBroadcast);
         }
 
-        // TODO: Can realize service class what will be implement all method for working with it.
-        private void StopKTServices()
-        {
-            Log.WriteInfo("stop services");
-            foreach (string serviceName in configuration.KTServices)
-            {
-                if (ServiceWorker.ServiceExists(serviceName) &&
-                    ServiceWorker.GetServiceStatus(serviceName) ==
-                        System.ServiceProcess.ServiceControllerStatus.Running)
-                {
-                    InputMessage(string.Format("{0} trying to pause", serviceName));
-                    if (ServiceWorker.PauseService(serviceName))
-                    {
-                        InputMessage(string.Format("{0} service paused", serviceName));
-                        ReportWriter.AppendString("Остановка службы {0} - ОК\n", serviceName);
-                        isStopServicesNeeded = true;
-                    }
-                    else
-                    {
-                        SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Can't pause service, see logs for more information."));
-                        ReportWriter.AppendString("Остановка службы {0} - FAILED\n", serviceName);
-                    }
-                }
-                else
-                {
-                    InputMessage(string.Format("{0} service does not found or not running", serviceName));
-                }
-            }
-        }
-        private void StartKTServices()
-        {
-            Log.WriteInfo("start services, isStopServicesNeeded:{0}", isStopServicesNeeded);
-            if (isStopServicesNeeded)
-            {
-                isStopServicesNeeded = false;
-                foreach (string serviceName in configuration.KTServices)
-                {
-                    if (ServiceWorker.ServiceExists(serviceName))
-                    {
-                        var serviceStatus = ServiceWorker.GetServiceStatus(serviceName);
-                        if (serviceStatus == System.ServiceProcess.ServiceControllerStatus.Stopped ||
-                            serviceStatus == System.ServiceProcess.ServiceControllerStatus.Paused)
-                        {
-                            InputMessage(string.Format("{0} trying to start", serviceName));
-                            if (ServiceWorker.ContinueService(serviceName))
-                            {
-                                InputMessage(string.Format("{0} service started", serviceName));
-                                ReportWriter.AppendString("Запуск службы {0} - ОК\n", serviceName);
-                            }
-                            else
-                            {
-                                SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Can't start service, see logs for more information."));
-                                ReportWriter.AppendString("Запуск службы {0} - FAILED\n", serviceName);
-                            }
-                        }
-                        else
-                        {
-                            InputMessage(string.Format("{0} service does not found or not stopped", serviceName));
-                        }
-                    }
-                }
-            }
-        }
         private bool DelayedStartFunc()
         {
             if (DelayedStart > DateTime.Now)
@@ -374,7 +279,7 @@ namespace DBDownloader
                     {
                         string message = string.Format("Delayed start {0}, waitingtime: {1}, Download will begin in: {2}",
                             DateTime.Now.ToLongTimeString(), waitingTime.ToString(), DateTime.Now.Add(waitingTime));
-                        InputMessage(message);
+                        Messenger.Instance.Write(message, Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
                         ReportWriter.AppendString(message);
 
                         waitingStartCts.Token.WaitHandle.WaitOne(waitingTime);
@@ -409,7 +314,8 @@ namespace DBDownloader
                     Status = DBDownloader.Status.InProgress;
                     if (loadingManager.DownloadingFileLenght > 0)
                     {
-                        StopKTServices();
+                        Log.WriteInfo("Trying to stop KTServices");
+                        KTServices.Instance.Stop();
                         loadingManager.BeginAsync().Wait();
                     }
                 }
@@ -417,7 +323,7 @@ namespace DBDownloader
                 {
                     string errorMessage = string.Format("Processing Error: Initialize error: {0}", ex.Message);
                     Log.WriteError(errorMessage);
-                    SendConsoleMessage.Invoke(this, new StringEntryEventArgs(errorMessage));
+                    Messenger.Instance.Write(errorMessage, Messenger.Type.ApplicationBroadcast);
                 }
 
                 if (ProcessingEndedEvent != null)
@@ -432,7 +338,10 @@ namespace DBDownloader
                 {
                     ReportWriter.AppendString("Загрузка приостановлена. {0} {1}\n", DateTime.Now.ToLongTimeString(), DateTime.Now.ToLongDateString());
                 }
-                StartKTServices();
+
+                Log.WriteInfo("Trying to start KTServices");
+                KTServices.Instance.Start();
+
                 string reportDate = string.Format("d{0}{1}{2}t{3}{4}{5}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                 ftpWorker.SendReportToFtp(ReportWriter.GetReportInfo(), string.Format("{0}_{1}.txt", reportUri, reportDate));
 
@@ -444,15 +353,19 @@ namespace DBDownloader
         {
             try
             {
+                Configuration configuration = Configuration.Instance;
                 if (configuration.OperationalUpdateDirectory.Exists)
                 {
-                    InputMessage(string.Format("Trying to clean {0}", configuration.OperationalUpdateDirectory.FullName));
+                    //InputMessage(string.Format("Trying to clean {0}", configuration.OperationalUpdateDirectory.FullName));
+                    Messenger.Instance.Write(string.Format("Trying to clean {0}", configuration.OperationalUpdateDirectory.FullName),
+                                Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
                     foreach (FileInfo file in configuration.OperationalUpdateDirectory.EnumerateFiles())
                     {
                         Log.WriteTrace("Delete file: {0}", file.FullName);
                         if (file.Exists) file.Delete();
                     }
 
+                    FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
                     string ftphost = ftpConfiguration.FtpSourcePath;
                     ftphost = ftphost.Remove(0, "ftp://".Length);
                     Log.WriteTrace("CleanOperUp - Host: {0}", ftphost);
@@ -468,7 +381,9 @@ namespace DBDownloader
                     {
                         if (!item.IsDirectory)
                         {
-                            InputMessage(string.Format("Downloading operup file: {0}", item.Name));
+                            //InputMessage(string.Format("Downloading operup file: {0}", item.Name));
+                            Messenger.Instance.Write(string.Format("Downloading operup file: {0}", item.Name),
+                                Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
                             FileInfo destinationFile = new FileInfo(string.Format(@"{0}\{1}", configuration.OperationalUpdateDirectory.FullName, item.Name));
                             Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}", ftpConfiguration.FtpSourcePath, ftpConfiguration.ClearFolder, item.Name));
                             FTPDownloader itemDownloader = new FTPDownloader(networkCredential, destinationFile, sourceFile);
@@ -481,7 +396,9 @@ namespace DBDownloader
                             itemDownloader.BeginAsync().Wait();
                         }
                     }
-                    InputMessage(string.Format("Operup update finished"));
+                    //InputMessage(string.Format("Operup update finished"));
+                    Messenger.Instance.Write(string.Format("Operup update finished"),
+                        Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
                 }
             }
             catch (Exception ex)
@@ -547,11 +464,12 @@ namespace DBDownloader
             }
         }
 
+        /*
         private void InputMessage(string message)
         {
             Log.WriteTrace(message);
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs(message));
         }
-
+        */
     }
 }
