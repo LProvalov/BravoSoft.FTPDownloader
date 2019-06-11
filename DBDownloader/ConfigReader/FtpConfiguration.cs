@@ -10,10 +10,9 @@ namespace DBDownloader.ConfigReader
     public class FtpConfiguration
     {
         private CryptRC4 rc4 = new CryptRC4(new Guid("61613f97-d29e-4df1-8254-15ec61187b3c").ToByteArray());
-
         private FtpConfigurationModel model;
 
-        public FtpConfiguration(string configurationPath)
+        private FtpConfiguration(string configurationPath)
         {
             model = new FtpConfigurationModel();
             XmlSerializer serializer = new XmlSerializer(typeof(FtpConfigurationModel));

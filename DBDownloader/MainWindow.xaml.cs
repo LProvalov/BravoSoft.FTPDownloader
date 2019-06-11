@@ -34,9 +34,8 @@ namespace DBDownloader
         private delegate void StringArgDelegate(string str);
         private delegate void StatusArgDelegate(Status status);
         
-        private Configuration configuration;
+        //private Configuration configuration;
         private FtpConfiguration ftpConfiguration;
-        private readonly string configurationPath = "AppConfig.xml";
         private SchedulerModel schedulerModel;
 
         private DownloaderEngine _downloaderEngine;
@@ -44,6 +43,7 @@ namespace DBDownloader
         {
             get
             {
+                Configuration configuration = Configuration.GetInstance();
                 if (_downloaderEngine == null) _downloaderEngine =
                         configuration.UseProxy ?
                         new DownloaderEngine(configuration, ftpConfiguration, schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
@@ -71,7 +71,7 @@ namespace DBDownloader
         {
             Log.WriteInfo("FirstStartInitialization");
             schedulerModel = new SchedulerModel();
-            configuration = new Configuration(configurationPath);
+            Configuration configuration = Configuration.GetInstance();
             configuration.LoadConfiguration();
 
             FileInfo configFile = new FileInfo(
@@ -100,7 +100,7 @@ namespace DBDownloader
                 }
                 else
                 {
-                    ButtonsEnableDisable(ButtonsEnable.Start | ButtonsEnable.Schedule);
+                    ButtonsEnableDisable(ButtonsEnable.Start | ButtonsEnable.Schedule | ButtonsEnable.Settings);
                 }
             }
         }
@@ -167,7 +167,7 @@ namespace DBDownloader
         {
             ButtonsEnableDisable(ButtonsEnable.Stop);
 
-            DownloaderEngine.DelayedStart = configuration.DelayedStart;
+            DownloaderEngine.DelayedStart = Configuration.GetInstance().DelayedStart;
             DownloaderEngine.StartAsync();
         }
 
@@ -175,6 +175,7 @@ namespace DBDownloader
         {
             Log.WriteInfo("scheduler button click");
             //this.IsEnabled = false;
+            Configuration configuration = Configuration.GetInstance();
             Scheduler schedulerWindow = new Scheduler(schedulerModel);
             schedulerWindow.Left = this.Left + this.Width / 2 - schedulerWindow.Width / 2;
             schedulerWindow.Top = this.Top + this.Height / 2 - schedulerWindow.Height / 2;
@@ -213,15 +214,15 @@ namespace DBDownloader
                 name1 = items[0].ProductFileNameUI;
                 name2 = items[1].ProductFileNameUI;
             }
-            Settings settingsWindow = new Settings(configuration, name1, name2);
+            Settings settingsWindow = new Settings(name1, name2);
             settingsWindow.Left = this.Left + this.Width / 2 - settingsWindow.Width / 2;
             settingsWindow.Top = this.Top + this.Height / 2 - settingsWindow.Height / 2;
             bool? dialogResult = settingsWindow.ShowDialog();
 
             this.IsEnabled = true;
-            if (configuration.IsValid)
+            if (Configuration.GetInstance().IsValid)
             {
-                ButtonsEnableDisable(ButtonsEnable.Start | ButtonsEnable.Schedule);
+                ButtonsEnableDisable(ButtonsEnable.Start | ButtonsEnable.Schedule | ButtonsEnable.Settings);
             }
             else
             {

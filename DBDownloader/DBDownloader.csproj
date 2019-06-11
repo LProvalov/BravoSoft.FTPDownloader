@@ -126,7 +126,7 @@
     <Compile Include="Scheduler.xaml.cs">
       <DependentUpon>Scheduler.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ServiceWorker.cs" />
+    <Compile Include="WinServices\ServiceWorker.cs" />
     <Compile Include="Settings.xaml.cs">
       <DependentUpon>Settings.xaml</DependentUpon>
     </Compile>
