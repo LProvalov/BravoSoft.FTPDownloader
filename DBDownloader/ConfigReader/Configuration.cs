@@ -179,6 +179,7 @@ namespace DBDownloader.ConfigReader
             }
         }
 
+       /* 
         public int ProductVersion
         {
             get
@@ -191,6 +192,7 @@ namespace DBDownloader.ConfigReader
                 model.ProductVersion = value;
             }
         }
+        */
 
         public int CountOfRepeat
         {

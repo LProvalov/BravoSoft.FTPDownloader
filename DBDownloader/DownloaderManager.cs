@@ -144,7 +144,14 @@ namespace DBDownloader
 
             SendConsoleMessage.Invoke(this, new StringEntryEventArgs("Product files parsing..."));
             ProductsParser productParser = new ProductsParser(productFiles);
-            string productListName = ftpConfiguration.ProductModelItems[configuration.ProductVersion].ProductFileName;
+            string productListName = String.Empty;
+            if (ftpConfiguration.ProductModelItems != null && ftpConfiguration.ProductModelItems.Count > 0)
+            {
+                productListName = ftpConfiguration.ProductModelItems[0].ProductFileName;
+            } else
+            {
+                Log.WriteError("Product List Name doesn't define in FtpConfiguration!");
+            }
             return productParser.GetDBList(productIds, productListName);
         }
 

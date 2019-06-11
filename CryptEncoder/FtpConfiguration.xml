@@ -4,11 +4,11 @@
   <DBPath>base</DBPath>
   <AutocomplectsPath>base/xml</AutocomplectsPath>
   <ProductsPath>base/xml</ProductsPath>
-  <ProductModelItems>
+  <!--ProductModelItems>
     <ProductFileName>Products_6.4.0_old.xml</ProductFileName>
     <ProductFileNameUI>Products v6.4.0 OLD</ProductFileNameUI>
     <ProductBasePath>base</ProductBasePath>
-  </ProductModelItems>
+  </ProductModelItems-->
   <ProductModelItems>
     <ProductFileName>Products_6.4.xml</ProductFileName>
     <ProductFileNameUI>Products v6.4.0</ProductFileNameUI>

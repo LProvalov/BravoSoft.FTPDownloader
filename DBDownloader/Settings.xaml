@@ -57,12 +57,12 @@
                 </Grid.RowDefinitions>
                 <CheckBox x:Name="trrCheckBox" Content="Копировать информационный продукт 'Реформа тех.регулирования'"
                           HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                <RadioButton Grid.Row="1" Margin="10,10,0,0" GroupName="ProductVersion" 
+                <!--RadioButton Grid.Row="1" Margin="10,10,0,0" GroupName="ProductVersion" 
                              Name="productVersionRB1" Content="{Binding ProductVersionRB1Content}" IsChecked="True">
-                </RadioButton>
+                </>
                 <RadioButton Grid.Row="1" Margin="10,35,0,0" GroupName="ProductVersion" 
                              Name="productVersionRB2" Content="{Binding ProductVersionRB2Content}" IsChecked="False">
-                </RadioButton>
+                </RadioButton-->
             </Grid>
         </GroupBox>
         <Button x:Name="saveButton" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,95,10" Grid.Row="4" VerticalAlignment="Bottom" Height="23" Width="75" Click="saveButton_Click"/>

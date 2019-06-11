@@ -25,16 +25,20 @@ namespace DBDownloader
             if (configuration.DBDirectory != null)
                 dbdirectoryTextBox.Text = configuration.DBDirectory.FullName;
             trrCheckBox.IsChecked = configuration.IsTechnicalRegulationReform;
+            /*
             if (configuration.ProductVersion == 0) productVersionRB1.IsChecked = true;
             else productVersionRB2.IsChecked = true;
+            */
             DataContext = new SettingsPageViewModel() { ProductVersionRB1Content = productVersion1Name, ProductVersionRB2Content = productVersion2Name };
         }
 
         private void saveButton_Click(object sender, RoutedEventArgs e)
         {
             configuration.IsTechnicalRegulationReform = trrCheckBox.IsChecked.Value;
+            /*
             if (productVersionRB1.IsChecked.Value) configuration.ProductVersion = 0;
             else configuration.ProductVersion = 1;
+            */
             if (ValidateModel(configuration))
             {
                 configuration.SaveConfiguration();
