@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using DBDownloader.MainLogger;
 using DBDownloader.Models;
 using DBDownloader.ConfigReader;
+using System.IO;
+using DBDownloader.LOG;
 
 namespace DBDownloader
 {
@@ -14,27 +16,36 @@ namespace DBDownloader
     /// </summary>
     public partial class MainWindow : Window
     {
+        [Flags]
+        public enum ButtonsEnable
+        {
+            DISABLE_ALL = 1,
+            Settings = 2,
+            Start = 4,
+            Schedule = 8,
+            Stop = 16
+        }
+
         public readonly double EXPANDED_ROW_HEIGHT = 120;
         public readonly double EXPANDED_NNTU_ROW_HEIGHT = 220;
-
+        
         private delegate void NoArgDelegate();
         private delegate void StringArgDelegate(string str);
         private delegate void StatusArgDelegate(Status status);
         
-        private Configuration configuration;
-        private readonly string configurationPath = "AppConfig.xml";
         private SchedulerModel schedulerModel;
 
-        private DownloaderManager _downloaderManager;
-        private DownloaderManager DownloaderManager
+        private DownloaderEngine _downloaderEngine;
+        private DownloaderEngine DownloadEngine
         {
             get
             {
-                if (_downloaderManager == null) _downloaderManager =
+                Configuration configuration = Configuration.GetInstance();
+                if (_downloaderEngine == null) _downloaderEngine =
                         configuration.UseProxy ?
-                        new DownloaderManager(configuration, schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
-                        new DownloaderManager(configuration, schedulerModel);
-                return this._downloaderManager;
+                        new DownloaderEngine(schedulerModel, configuration.UseProxy, configuration.ProxyAddress) :
+                        new DownloaderEngine(schedulerModel);
+                return this._downloaderEngine;
             }
         }
 
@@ -42,6 +53,14 @@ namespace DBDownloader
 
         public MainWindow()
         {
+            Messenger.Instance.MessageBroadcasted += (obj, arg) =>
+            {
+                this.consoleTextBox.Dispatcher.BeginInvoke(
+                    new StringArgDelegate(AddTextToConsole),
+                    System.Windows.Threading.DispatcherPriority.Background,
+                    arg.Text);
+            };
+
             Log.WriteInfo("MainWindow");
 
             Log.WriteTrace("Initialize main window components");
@@ -57,7 +76,7 @@ namespace DBDownloader
         {
             Log.WriteInfo("FirstStartInitialization");
             schedulerModel = new SchedulerModel();
-            configuration = new Configuration(configurationPath);
+            Configuration configuration = Configuration.GetInstance();
             configuration.LoadConfiguration();
 
             if (configuration.DelayedStart > DateTime.Now)
@@ -65,7 +84,7 @@ namespace DBDownloader
                 schedulerModel.StartTime = configuration.DelayedStart;
             }
 
-            DownloaderManagerInitialization();
+            DownloadEngineInitialization();
             fetcher = new NoArgDelegate(this.FetchDownloaderManager);
             fetcher.BeginInvoke(null, null);
 
@@ -81,32 +100,31 @@ namespace DBDownloader
                 }
                 else
                 {
-                    this.startButton.IsEnabled = true;
-                    this.scheduleButton.IsEnabled = true;
+                    ButtonsEnableDisable(ButtonsEnable.Start | ButtonsEnable.Schedule | ButtonsEnable.Settings);
                 }
             }
         }
 
-        private void DownloaderManagerInitialization()
-        {
-         
-            DownloaderManager.ProcessingEndedEvent += (obj, args) =>
+        private void DownloadEngineInitialization()
+        {         
+            DownloadEngine.ProcessingEndedEvent += (obj, args) =>
             {
-                this.downloadingList.Dispatcher.BeginInvoke(
-                    new NoArgDelegate(StopDownloading),
+                this.mainGrid.Dispatcher.BeginInvoke(
+                    new NoArgDelegate(() => { ButtonsEnableDisable(ButtonsEnable.Settings | ButtonsEnable.Start | ButtonsEnable.Schedule); }),
                     System.Windows.Threading.DispatcherPriority.Normal,
                     null);
             };
 
-            DownloaderManager.SendConsoleMessage += (obj, arg) =>
+            /*
+            DownloadEngine.SendConsoleMessage += (obj, arg) =>
             {
                 this.consoleTextBox.Dispatcher.BeginInvoke(
                     new StringArgDelegate(AddTextToConsole),
                     System.Windows.Threading.DispatcherPriority.Background,
                     arg.Text);
-            };
+            };*/
 
-            DownloaderManager.StatusChangeEvent += (obj, args) =>
+            DownloadEngine.StatusChangeEvent += (obj, args) =>
             {
                 this.statusTextBlock.Dispatcher.BeginInvoke(
                     new StatusArgDelegate(UpdateStatus),
@@ -130,12 +148,12 @@ namespace DBDownloader
         private void UpdateDownloadingList()
         {
             // TODO: change window controls update process.
-            DownloaderManager.UpdateDownloadingItems();
+            DownloadEngine.UpdateDownloadingItems();
             downloadingList.ItemsSource = null;
-            downloadingList.ItemsSource = DownloaderManager.DownloadingItems;
+            downloadingList.ItemsSource = DownloadEngine.DownloadingItems;
 
             NNTL_downloadingList.ItemsSource = null;
-            NNTL_downloadingList.ItemsSource = DownloaderManager.NNTD_DownloadingItems;
+            NNTL_downloadingList.ItemsSource = DownloadEngine.NNTD_DownloadingItems;
         }
 
         private void settingsButton_Click(object sender, RoutedEventArgs e)
@@ -148,19 +166,17 @@ namespace DBDownloader
         }
         private void start()
         {
-            settingsButton.IsEnabled = false;
-            startButton.IsEnabled = false;
-            scheduleButton.IsEnabled = false;
-            stopButton.IsEnabled = true;
+            ButtonsEnableDisable(ButtonsEnable.Stop);
 
-            DownloaderManager.DelayedStart = configuration.DelayedStart;
-            DownloaderManager.StartAsync();
+            DownloadEngine.DelayedStart = Configuration.GetInstance().DelayedStart;
+            DownloadEngine.StartAsync();
         }
 
         private void scheduleButton_Click(object sender, RoutedEventArgs e)
         {
             Log.WriteInfo("scheduler button click");
-            this.IsEnabled = false;
+            //this.IsEnabled = false;
+            Configuration configuration = Configuration.GetInstance();
             Scheduler schedulerWindow = new Scheduler(schedulerModel);
             schedulerWindow.Left = this.Left + this.Width / 2 - schedulerWindow.Width / 2;
             schedulerWindow.Top = this.Top + this.Height / 2 - schedulerWindow.Height / 2;
@@ -169,50 +185,49 @@ namespace DBDownloader
             {
                 configuration.DelayedStart = DateTime.Now.AddMinutes(schedulerModel.DelayedMins);
                 configuration.SaveConfiguration();
-                this.IsEnabled = true;
-                settingsButton.IsEnabled = false;
-                startButton.IsEnabled = false;
-                scheduleButton.IsEnabled = false;
-                stopButton.IsEnabled = true;
-                DownloaderManager.DelayedStart = configuration.DelayedStart;
-                DownloaderManager.StartAsync();
+                ButtonsEnableDisable(ButtonsEnable.Stop);
+                DownloadEngine.DelayedStart = configuration.DelayedStart;
+                DownloadEngine.StartAsync();
             }
             else
             {
                 configuration.DelayedStart = DateTime.Now;
                 configuration.SaveConfiguration();
-                this.IsEnabled = true;
-                startButton.IsEnabled = true;
-                scheduleButton.IsEnabled = true;
-                stopButton.IsEnabled = false;
+                ButtonsEnableDisable(ButtonsEnable.Settings|ButtonsEnable.Start|ButtonsEnable.Schedule);
             }
         }
         private void stopButton_Click(object sender, RoutedEventArgs e)
         {
             Log.WriteInfo("stop button click");
             stopButton.IsEnabled = false;
-            DownloaderManager.Stop();
+            DownloadEngine.Stop();
         }
 
         private void settingsWindowShow()
         {
             Log.WriteInfo("settingsWindowShow");
             this.IsEnabled = false;
-            Settings settingsWindow = new Settings(configuration);
+            var items = FtpConfiguration.Instance.ProductModelItems;
+            String name1 = "Version 1";
+            String name2 = "Version 2";
+            if (items.Count == 2)
+            {
+                name1 = items[0].ProductFileNameUI;
+                name2 = items[1].ProductFileNameUI;
+            }
+            Settings settingsWindow = new Settings(name1, name2);
             settingsWindow.Left = this.Left + this.Width / 2 - settingsWindow.Width / 2;
             settingsWindow.Top = this.Top + this.Height / 2 - settingsWindow.Height / 2;
             bool? dialogResult = settingsWindow.ShowDialog();
 
             this.IsEnabled = true;
-            if (configuration.IsValid)
+            if (Configuration.GetInstance().IsValid)
             {
-                this.startButton.IsEnabled = true;
-                this.scheduleButton.IsEnabled = true;
+                ButtonsEnableDisable(ButtonsEnable.Start | ButtonsEnable.Schedule | ButtonsEnable.Settings);
             }
             else
             {
-                this.startButton.IsEnabled = false;
-                this.scheduleButton.IsEnabled = false;
+                ButtonsEnableDisable(ButtonsEnable.Settings);
             }
         }
 
@@ -225,12 +240,42 @@ namespace DBDownloader
             this.expanderRow.Height = new GridLength(EXPANDED_ROW_HEIGHT);
         }
 
-        private void StopDownloading()
+        private void ButtonsEnableDisable(ButtonsEnable buttonsEnable)
         {
-            settingsButton.IsEnabled = true;
-            startButton.IsEnabled = true;
-            scheduleButton.IsEnabled = true;
-            stopButton.IsEnabled = false;
+            if ((buttonsEnable & ButtonsEnable.Settings) == ButtonsEnable.Settings)
+            {
+                settingsButton.IsEnabled = true;
+            } else
+            {
+                settingsButton.IsEnabled = false;
+            }
+
+            if ((buttonsEnable & ButtonsEnable.Schedule) == ButtonsEnable.Schedule)
+            {
+                scheduleButton.IsEnabled = true;
+            }
+            else
+            {
+                scheduleButton.IsEnabled = false;
+            }
+
+            if ((buttonsEnable & ButtonsEnable.Start) == ButtonsEnable.Start)
+            {
+                startButton.IsEnabled = true;
+            }
+            else
+            {
+                startButton.IsEnabled = false;
+            }
+
+            if ((buttonsEnable & ButtonsEnable.Stop) == ButtonsEnable.Stop)
+            {
+                stopButton.IsEnabled = true;
+            }
+            else
+            {
+                stopButton.IsEnabled = false;
+            }
         }
 
         private void AddTextToConsole(string text)
@@ -261,7 +306,7 @@ namespace DBDownloader
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Log.WriteInfo("Close main window.");
-            if (this.DownloaderManager.Status != Status.Stopped)
+            if (this.DownloadEngine.Status != Status.Stopped)
             {
                 string msg = "Происходит обновление данных, завершить?";
                 MessageBoxResult result =
@@ -277,8 +322,8 @@ namespace DBDownloader
                 else
                 {
                     Log.WriteInfo("Stopping downloading manager.");
-                    DownloaderManager.Stop();
-                    while (DownloaderManager.Status != Status.Stopped) Thread.Sleep(500);
+                    DownloadEngine.Stop();
+                    while (DownloadEngine.Status != Status.Stopped) Thread.Sleep(500);
                 }
             }
         }

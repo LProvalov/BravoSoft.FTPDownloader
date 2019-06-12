@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="KodUp" Height="600" Width="1000" MinWidth="1000" MaxWidth="1000" MinHeight="600"
         ResizeMode="CanResize" Background="#FFF0F0F0" Icon="computing-cloud.png" Closing="Window_Closing">
-    <Grid>
+    <Grid Name="mainGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="45"/>
             <RowDefinition x:Name="expanderRow" Height="{Binding EXPANDED_ROW_HEIGHT}"/>

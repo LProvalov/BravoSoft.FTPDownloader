@@ -9,18 +9,37 @@ namespace DBDownloader.ConfigReader
 {
     public class FtpConfiguration
     {
+        private static readonly string CONFIG_FILE_STORAGE =
+            string.Format(@"{0}", Directory.GetCurrentDirectory());
         private CryptRC4 rc4 = new CryptRC4(new Guid("61613f97-d29e-4df1-8254-15ec61187b3c").ToByteArray());
-
         private FtpConfigurationModel model;
 
-        public FtpConfiguration(string configurationPath)
+        private static FtpConfiguration _instance = null;
+        public static FtpConfiguration GetInstance()
         {
+            if(_instance == null)
+            {
+                _instance = new FtpConfiguration();
+            }
+            return _instance;
+        }
+        public static FtpConfiguration Instance
+        {
+            get { return GetInstance(); }
+        }
+
+        private FtpConfiguration()
+        {
+            FileInfo configFile = new FileInfo(
+                string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, Configuration.GetInstance().ConnectionInitFile));
+            if (!configFile.Exists) throw new Exception("Config file does not found.");
+
             model = new FtpConfigurationModel();
             XmlSerializer serializer = new XmlSerializer(typeof(FtpConfigurationModel));
             StreamReader streamReader = null;
             try
             {
-                byte[] encodeArray = File.ReadAllBytes(configurationPath);
+                byte[] encodeArray = File.ReadAllBytes(configFile.FullName);
                 byte[] decodeArray = rc4.Decode(encodeArray, encodeArray.Length);
                 string decodeString = ASCIIEncoding.UTF8.GetString(decodeArray);
                 MemoryStream mStream = new MemoryStream();
@@ -42,7 +61,7 @@ namespace DBDownloader.ConfigReader
         }
 
         public string FtpSourcePath { get { return model.FtpSourcePath; } }
-        public IList<string> ProductFilesPath { get { return model.ProductFileNames; } }
+        public IList<ProductVersionModel> ProductModelItems { get { return model.ProductModelItems; } }
         public string AutocomplectsPath
         {
             get

@@ -12,8 +12,8 @@ namespace DBDownloader.ConfigReader
         public string AutocomplectsPath { get; set; }
         public string ProductsPath { get; set; }
 
-        [XmlElement("ProductFileNames")]
-        public List<string> ProductFileNames { get; set; }
+        [XmlElement("ProductModelItems")]
+        public List<ProductVersionModel> ProductModelItems { get; set; }
         public string ReportsPath { get; set; }
         public string User { get; set; }
         public string Password { get; set; }

@@ -30,5 +30,8 @@ namespace DBDownloader.XML.Models.Products
         [XmlArray("OPOGroups")]
         [XmlArrayItem("OPOGroup", typeof(OPOGroup))]
         public OPOGroup[] OPOGroups { get; set; }
+
+        [XmlAttribute("FullPathname")]
+        public string FullPathname { get; set; }
     }
 }

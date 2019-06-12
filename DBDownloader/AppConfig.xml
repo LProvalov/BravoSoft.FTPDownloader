@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <RegFile>D:\Projects\FTPDownloaderWork\460_197505.reg</RegFile>
-  <OperationalUpdateDirectory>D:\Projects\FTPDownloaderWork\OperUp</OperationalUpdateDirectory>
-  <DBDirectory>D:\Projects\FTPDownloaderWork\DBFiles</DBDirectory>
+  <RegFile>D:\Projects\460_197505.reg</RegFile>
+  <OperationalUpdateDirectory>D:\Projects\OperUp</OperationalUpdateDirectory>
+  <DBDirectory>D:\Projects\DBFiles</DBDirectory>
   <IsTechnicalRegulationReform>false</IsTechnicalRegulationReform>
   <ConnectionInitFile>FtpConfiguration.dat</ConnectionInitFile>
   <UseProxy>true</UseProxy>

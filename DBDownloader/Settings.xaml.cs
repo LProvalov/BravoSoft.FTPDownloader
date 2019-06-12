@@ -11,13 +11,12 @@ namespace DBDownloader
     /// </summary>
     public partial class Settings : Window
     {
-        private Configuration configuration;
-
+        
         public object FileName { get; private set; }
 
-        public Settings(Configuration configuration)
+        public Settings(String productVersion1Name, String productVersion2Name)
         {
-            this.configuration = configuration;
+            Configuration configuration = Configuration.GetInstance();
             InitializeComponent();
             if(configuration.RegFileInfo != null) regFilePathTextBox.Text = configuration.RegFileInfo.FullName;
             if(configuration.OperationalUpdateDirectory != null)
@@ -25,16 +24,21 @@ namespace DBDownloader
             if (configuration.DBDirectory != null)
                 dbdirectoryTextBox.Text = configuration.DBDirectory.FullName;
             trrCheckBox.IsChecked = configuration.IsTechnicalRegulationReform;
-
+            /*
             if (configuration.ProductVersion == 0) productVersionRB1.IsChecked = true;
             else productVersionRB2.IsChecked = true;
+            */
+            DataContext = new SettingsPageViewModel() { ProductVersionRB1Content = productVersion1Name, ProductVersionRB2Content = productVersion2Name };
         }
 
         private void saveButton_Click(object sender, RoutedEventArgs e)
         {
+            Configuration configuration = Configuration.GetInstance();
             configuration.IsTechnicalRegulationReform = trrCheckBox.IsChecked.Value;
+            /*
             if (productVersionRB1.IsChecked.Value) configuration.ProductVersion = 0;
             else configuration.ProductVersion = 1;
+            */
             if (ValidateModel(configuration))
             {
                 configuration.SaveConfiguration();
@@ -62,7 +66,7 @@ namespace DBDownloader
             bool? dialogResult = openFileDialog.ShowDialog();
             if (dialogResult.HasValue && dialogResult.Value == true)
             {
-                configuration.RegFileInfo = new FileInfo(openFileDialog.FileName);
+                Configuration.GetInstance().RegFileInfo = new FileInfo(openFileDialog.FileName);
                 this.regFilePathTextBox.Text = openFileDialog.FileName;
             }
         }
@@ -74,7 +78,7 @@ namespace DBDownloader
             System.Windows.Forms.DialogResult result = folderDialog.ShowDialog(this.GetIWin32Window());
             if (result == System.Windows.Forms.DialogResult.OK)
             {
-                configuration.OperationalUpdateDirectory = new DirectoryInfo(folderDialog.SelectedPath);
+                Configuration.GetInstance().OperationalUpdateDirectory = new DirectoryInfo(folderDialog.SelectedPath);
                 this.oprationalUpdateTextBox.Text = folderDialog.SelectedPath;
             }
         }
@@ -95,7 +99,7 @@ namespace DBDownloader
             System.Windows.Forms.DialogResult result = folderDialog.ShowDialog(this.GetIWin32Window());
             if (result == System.Windows.Forms.DialogResult.OK)
             {
-                configuration.DBDirectory = new DirectoryInfo(folderDialog.SelectedPath);
+                Configuration.GetInstance().DBDirectory = new DirectoryInfo(folderDialog.SelectedPath);
                 this.dbdirectoryTextBox.Text = folderDialog.SelectedPath;
             }
         }

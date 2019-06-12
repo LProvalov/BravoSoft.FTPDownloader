@@ -4,7 +4,7 @@ using System.ServiceProcess;
 
 using DBDownloader.MainLogger;
 
-namespace DBDownloader
+namespace DBDownloader.WinServices
 {
     public static class ServiceWorker
     {

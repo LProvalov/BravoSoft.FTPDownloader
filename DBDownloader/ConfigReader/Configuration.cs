@@ -7,13 +7,27 @@ namespace DBDownloader.ConfigReader
 {
     public class Configuration
     {
+        public static readonly string CONFIGURATION_PATH = "AppConfig.xml";
         private ConfigurationModel model;
         private XmlSerializer serializer;
         private string configurationPath;
-
         private bool isLoaded;
 
-        public Configuration(string configurationPath)
+        private static Configuration _instance = null;
+        public static Configuration GetInstance(string configPath = "")
+        {
+            if (_instance == null)
+            {
+                _instance = new Configuration(configPath != "" ? configPath : CONFIGURATION_PATH);
+            }
+            return _instance;
+        }
+        public static Configuration Instance
+        {
+            get { return GetInstance(); }
+        }
+
+        private Configuration(string configurationPath)
         {
             model = new ConfigurationModel();
             serializer = new XmlSerializer(typeof(ConfigurationModel));
@@ -179,6 +193,7 @@ namespace DBDownloader.ConfigReader
             }
         }
 
+       /* 
         public int ProductVersion
         {
             get
@@ -191,6 +206,7 @@ namespace DBDownloader.ConfigReader
                 model.ProductVersion = value;
             }
         }
+        */
 
         public int CountOfRepeat
         {
