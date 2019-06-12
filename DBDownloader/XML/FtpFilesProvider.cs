@@ -4,7 +4,7 @@ using System.IO;
 using System.Net;
 
 using DBDownloader.ConfigReader;
-using DBDownloader.FTP;
+using DBDownloader.Net.FTP;
 
 namespace DBDownloader.XML
 {

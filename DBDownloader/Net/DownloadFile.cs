@@ -4,8 +4,9 @@ using System.Net;
 using System.Threading.Tasks;
 
 using DBDownloader.MainLogger;
+using DBDownloader.Net.FTP;
 
-namespace DBDownloader.FTP
+namespace DBDownloader.Net
 {
     public class DownloadFile
     {

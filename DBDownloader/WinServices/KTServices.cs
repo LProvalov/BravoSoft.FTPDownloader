@@ -1,5 +1,5 @@
 ﻿using DBDownloader.ConfigReader;
-using DBDownloader.Events;
+using DBDownloader.Engine.Events;
 using DBDownloader.LOG;
 using System;
 using System.Collections.Generic;

@@ -256,5 +256,14 @@ namespace DBDownloader.ConfigReader
                 return model.AutoStart;
             }
         }
+
+        public short NetClientType
+        {
+            get
+            {
+                if (!isLoaded) throw new Exception("Configuration does not loading.");
+                return model.NetClientType;
+            }
+        }
     }
 }

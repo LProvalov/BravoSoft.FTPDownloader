@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using DBDownloader.MainLogger;
 using DBDownloader.Models;
 using DBDownloader.ConfigReader;
+using DBDownloader.Engine;
 using System.IO;
 using DBDownloader.LOG;
 

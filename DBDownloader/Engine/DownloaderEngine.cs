@@ -11,14 +11,16 @@ using DBDownloader.Models;
 using DBDownloader.XML;
 using DBDownloader.XML.Models.Autocomplects;
 using DBDownloader.XML.Models.Products;
-using DBDownloader.FTP;
 using DBDownloader.MainLogger;
 using DBDownloader.WinServices;
 using System.Text;
-using DBDownloader.Events;
+using DBDownloader.Engine.Events;
 using DBDownloader.LOG;
+using DBDownloader.Providers;
+using DBDownloader.Net;
+using DBDownloader.Net.FTP;
 
-namespace DBDownloader
+namespace DBDownloader.Engine
 {
     public enum Status
     {
@@ -60,7 +62,7 @@ namespace DBDownloader
         private LoadingManager loadingManager;
 
         private NetworkCredential networkCredential;
-        private FTPWorker ftpWorker;
+        private DataProvider dataProvider;
         private bool useProxy = false;
         private string proxyAddress = string.Empty;
         private CancellationTokenSource waitingStartCts;
@@ -79,6 +81,7 @@ namespace DBDownloader
             this.Status = Status.Stopped;
             this.useProxy = useProxy;
             this.proxyAddress = proxyAddress;
+            this.dataProvider = new DataProvider();
             downloadingItems = new ObservableCollection<DownloadingItem>();
             NNTD_DownloadingItems = new ObservableCollection<DownloadingItem>();
             FileInfo reportinfo = new FileInfo(REPORT_PATH);
@@ -153,16 +156,12 @@ namespace DBDownloader
             loadingManager.ErrorOccurred += LoadingManager_ErrorOccurred;
 
             Log.WriteTrace("Initialize - ftp worker");
-            ftpWorker = new FTPWorker(networkCredential);
 
             string dbUriStr = string.Format(@"{0}//{1}",
                 ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
-            Dictionary<string, FtpFileInfo> sizeDBDictionary = ftpWorker.GetDBListWithSize(new Uri(dbUriStr));
+            Dictionary<string, NetFileInfo> sizeDBDictionary = dataProvider.GetDBListWithSize(new Uri(dbUriStr));
             if (sizeDBDictionary.Count == 0) throw new Exception(
                 string.Format("Can't get information about db files in current Url: {0}", dbUriStr));
-
-            Messenger.Instance.Write("Getting info about FTP DB files...", Messenger.Type.ApplicationBroadcast);
-            //ftpWorker.GetFilesDate(dbUriStr);
 
             Log.WriteTrace("Initialize - get list of toms");
             Messenger.Instance.Write("Getting info about FTP DB files...", Messenger.Type.ApplicationBroadcast);
@@ -192,7 +191,7 @@ namespace DBDownloader
                 DateTime creationFileDateTime = new DateTime();
                 FileInfo destinationFile = new FileInfo(destinationFileStr);
 
-                FtpFileInfo sourceFileInfo;
+                NetFileInfo sourceFileInfo;
                 if (sizeDBDictionary.TryGetValue(sourceFileUrl, out sourceFileInfo))
                 {
                     sourceSize = sourceFileInfo.Length;
@@ -211,8 +210,7 @@ namespace DBDownloader
                     var sourceFilePathString = string.Format(@"{0}//{1}",
                         ftpConfiguration.FtpSourcePath,
                         tom.FullPathname);
-                    ftpWorker.GetDBListWithSize(new Uri(sourceFilePathString));
-                    //ftpWorker.GetFilesDate(sourceFilePathString);
+                    sizeDBDictionary = dataProvider.GetDBListWithSize(new Uri(sourceFilePathString));
                     if (sizeDBDictionary.TryGetValue(sourceFileUrl, out sourceFileInfo))
                     {
                         sourceSize = sourceFileInfo.Length;
@@ -271,7 +269,7 @@ namespace DBDownloader
         {
             if (DelayedStart > DateTime.Now)
             {
-                Status = DBDownloader.Status.StartWaiting;
+                Status = DBDownloader.Engine.Status.StartWaiting;
                 TimeSpan waitingTime = DelayedStart - DateTime.Now;
                 using (waitingStartCts = new CancellationTokenSource())
                 {
@@ -294,7 +292,7 @@ namespace DBDownloader
                     if (dt > nt)
                     {
                         Log.WriteTrace("DelayedStart ticks:{0}, now ticks:{1}", dt, nt);
-                        Status = DBDownloader.Status.Stopped;
+                        Status = Status.Stopped;
                         if (ProcessingEndedEvent != null)
                             ProcessingEndedEvent.Invoke(this, new EventArgs());
                         return false;
@@ -311,7 +309,7 @@ namespace DBDownloader
                 try
                 {
                     Initialize();
-                    Status = DBDownloader.Status.InProgress;
+                    Status = Status.InProgress;
                     if (loadingManager.DownloadingFileLenght > 0)
                     {
                         Log.WriteInfo("Trying to stop KTServices");
@@ -343,9 +341,9 @@ namespace DBDownloader
                 KTServices.Instance.Start();
 
                 string reportDate = string.Format("d{0}{1}{2}t{3}{4}{5}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
-                ftpWorker.SendReportToFtp(ReportWriter.GetReportInfo(), string.Format("{0}_{1}.txt", reportUri, reportDate));
+                dataProvider.SendReportToServer(ReportWriter.GetReportInfo(), string.Format("{0}_{1}.txt", reportUri, reportDate));
 
-                Status = DBDownloader.Status.Stopped;
+                Status = Status.Stopped;
             }
         }
 
@@ -356,7 +354,6 @@ namespace DBDownloader
                 Configuration configuration = Configuration.Instance;
                 if (configuration.OperationalUpdateDirectory.Exists)
                 {
-                    //InputMessage(string.Format("Trying to clean {0}", configuration.OperationalUpdateDirectory.FullName));
                     Messenger.Instance.Write(string.Format("Trying to clean {0}", configuration.OperationalUpdateDirectory.FullName),
                                 Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
                     foreach (FileInfo file in configuration.OperationalUpdateDirectory.EnumerateFiles())
@@ -365,27 +362,32 @@ namespace DBDownloader
                         if (file.Exists) file.Delete();
                     }
 
-                    FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
-                    string ftphost = ftpConfiguration.FtpSourcePath;
-                    ftphost = ftphost.Remove(0, "ftp://".Length);
-                    Log.WriteTrace("CleanOperUp - Host: {0}", ftphost);
-                    FTPClient ftpClient = new FTPClient(ftphost, ftpConfiguration.User, ftpConfiguration.Password);
-                    ftpClient.UseBinary = true;
-                    if (useProxy)
-                    {
-                        ftpClient.ProxyAddress = proxyAddress;
-                    }
-                    ftpClient.UseBinary = false;
-                    Log.WriteTrace("CleanOperUp - Get list directory: {0}", ftpConfiguration.ClearFolder);
-                    foreach (var item in ftpClient.ListDirectory(ftpConfiguration.ClearFolder))
+                    //FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
+                    //string ftphost = ftpConfiguration.FtpSourcePath;
+                    //ftphost = ftphost.Remove(0, "ftp://".Length);
+                    //Log.WriteTrace("CleanOperUp - Host: {0}", ftphost);
+                    //FtpClient ftpClient = new FtpClient(ftphost, ftpConfiguration.User, ftpConfiguration.Password);
+                    //ftpClient.UseBinary = true;
+                    //if (useProxy)
+                    //{
+                    //    ftpClient.ProxyAddress = proxyAddress;
+                    //}
+                    //ftpClient.UseBinary = false;
+                    //Log.WriteTrace("CleanOperUp - Get list directory: {0}", ftpConfiguration.ClearFolder);
+                    //ftpClient.ListDirectory(ftpConfiguration.ClearFolder)
+                    FileStruct[] listDirectory = dataProvider.ListDirectory(FtpConfiguration.Instance.ClearFolder);
+                    foreach (var item in listDirectory)
                     {
                         if (!item.IsDirectory)
                         {
-                            //InputMessage(string.Format("Downloading operup file: {0}", item.Name));
                             Messenger.Instance.Write(string.Format("Downloading operup file: {0}", item.Name),
                                 Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
-                            FileInfo destinationFile = new FileInfo(string.Format(@"{0}\{1}", configuration.OperationalUpdateDirectory.FullName, item.Name));
-                            Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}", ftpConfiguration.FtpSourcePath, ftpConfiguration.ClearFolder, item.Name));
+                            FileInfo destinationFile = new FileInfo(string.Format(@"{0}\{1}", 
+                                configuration.OperationalUpdateDirectory.FullName, 
+                                item.Name));
+                            Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}", 
+                                FtpConfiguration.Instance.FtpSourcePath, 
+                                FtpConfiguration.Instance.ClearFolder, item.Name));
                             FTPDownloader itemDownloader = new FTPDownloader(networkCredential, destinationFile, sourceFile);
                             itemDownloader.UsePassiveFTP = configuration.UsePassiveFTP;
                             if (useProxy)
@@ -396,7 +398,6 @@ namespace DBDownloader
                             itemDownloader.BeginAsync().Wait();
                         }
                     }
-                    //InputMessage(string.Format("Operup update finished"));
                     Messenger.Instance.Write(string.Format("Operup update finished"),
                         Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
                 }
@@ -443,7 +444,7 @@ namespace DBDownloader
         public Task StartAsync()
         {
             Log.WriteInfo("DownloaderEngine StartAsync {0}", DateTime.Now);
-            if (Status == DBDownloader.Status.Stopped)
+            if (Status == Status.Stopped)
             {
                 processingTask = Task.Factory.StartNew(Processing);
                 return processingTask;
@@ -453,23 +454,15 @@ namespace DBDownloader
 
         public void Stop()
         {
-            if (Status == DBDownloader.Status.StartWaiting)
+            if (Status == Status.StartWaiting)
             {
                 waitingStartCts.Cancel();
             }
-            if (Status == DBDownloader.Status.InProgress && loadingManager != null)
+            if (Status == Status.InProgress && loadingManager != null)
             {
                 Status = Status.Stopping;
                 loadingManager.Cancel();
             }
         }
-
-        /*
-        private void InputMessage(string message)
-        {
-            Log.WriteTrace(message);
-            SendConsoleMessage.Invoke(this, new StringEntryEventArgs(message));
-        }
-        */
     }
 }

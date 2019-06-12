@@ -1,4 +1,4 @@
-﻿using DBDownloader.Events;
+﻿using DBDownloader.Engine.Events;
 using DBDownloader.MainLogger;
 using System;
 using System.Collections.Generic;

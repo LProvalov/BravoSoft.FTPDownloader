@@ -19,6 +19,7 @@ namespace DBDownloader.ConfigReader
         public bool AutoStart { get; set; }
         public int CountOfRepeat { get; set; }
         public int RepeatDalay { get; set; }
+        public short NetClientType { get; set; }
     }
 }
 

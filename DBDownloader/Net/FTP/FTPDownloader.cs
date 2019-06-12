@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 using DBDownloader.MainLogger;
 
-namespace DBDownloader.FTP
+namespace DBDownloader.Net.FTP
 {
     public class FTPDownloader
     {

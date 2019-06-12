@@ -7,8 +7,11 @@ using System.Threading.Tasks;
 
 using DBDownloader.MainLogger;
 using DBDownloader.ConfigReader;
+using DBDownloader.Providers;
+using DBDownloader.Net;
+using DBDownloader.Net.FTP;
 
-namespace DBDownloader.FTP
+namespace DBDownloader.Engine
 {
     public class LoadingManager
     {
@@ -18,7 +21,8 @@ namespace DBDownloader.FTP
 
         private bool isLoading = false;
         private Uri reportDirUrl;
-        private FTPWorker ftpWorker;
+        //private FTPWorker ftpWorker;
+        private DataProvider dataProvider;
 
         private bool isLoadedEnd = false;
         public bool IsLoadedEnd { get { return isLoadedEnd; } }
@@ -31,7 +35,8 @@ namespace DBDownloader.FTP
         {
             this.networkCredential = networkCredential;
             this.reportDirUrl = reportDirUrl;
-            ftpWorker = new FTPWorker(networkCredential);
+            //ftpWorker = new FTPWorker(networkCredential);
+            dataProvider = new DataProvider();
         }
                
         public bool IsLoading { get { return isLoading; } }
