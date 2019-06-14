@@ -51,6 +51,8 @@ namespace DBDownloader.Net.FTP
         }
 
         public event ErrorEventHandler ErrorOccuredEvent;
+        public event EventHandler DownloadEndEvent;
+        public event EventHandler NextDownloadAttenptOccurred;
 
         public FTPDownloaderStatus Status { get { return _status; } }
         public bool UseProxy { get; set; } = false;
@@ -83,8 +85,6 @@ namespace DBDownloader.Net.FTP
             }
             public DateTime CreationFileDateTime { get { return _creationDateTime; } }
         }
-
-        public EventHandler DownloadEndEvent;
 
         public FTPDownloader(string username, string password, string destinationFileName, string sourceUri, long sourceSize = 0)
             : this(new NetworkCredential(username, password), new FileInfo(destinationFileName), new Uri(sourceUri), sourceSize)
@@ -217,7 +217,7 @@ namespace DBDownloader.Net.FTP
                     _status = FTPDownloaderStatus.weberroroccured;
                     isErrorOccured = true;
                     errorMessage = wEx.Message;
-                    ErrorOccuredEvent.BeginInvoke(this, new ErrorEventArgs(wEx), null, null);
+                    if (ErrorOccuredEvent != null) ErrorOccuredEvent.BeginInvoke(this, new ErrorEventArgs(wEx), null, null);
                 }
                 catch (Exception ex)
                 {
@@ -227,7 +227,7 @@ namespace DBDownloader.Net.FTP
                     _status = FTPDownloaderStatus.erroroccured;
                     isErrorOccured = true;
                     errorMessage = ex.Message;
-                    ErrorOccuredEvent.BeginInvoke(this, new ErrorEventArgs(ex), null, null);
+                    if (ErrorOccuredEvent != null )ErrorOccuredEvent.BeginInvoke(this, new ErrorEventArgs(ex), null, null);
                 }
                 finally
                 {
@@ -282,6 +282,10 @@ namespace DBDownloader.Net.FTP
                 int loopCount = repeatCount;
                 do
                 {
+                    if (loopCount != repeatCount && NextDownloadAttenptOccurred != null)
+                    {
+                        NextDownloadAttenptOccurred.BeginInvoke(this, new EventArgs(), null, null);
+                    }
                     ResumeFtpFileDownload(sourceUri, destinationFile);
                     Log.WriteTrace("FTPDownloader status: {0}", _status);
                     if (_status == FTPDownloaderStatus.weberroroccured)
@@ -293,10 +297,14 @@ namespace DBDownloader.Net.FTP
                         }
                         loopCancellationTokenSource = null;
                         if (_ftpStatusCode != FtpStatusCode.ActionNotTakenFileUnavailable &&
-                        _ftpStatusCode != FtpStatusCode.ActionNotTakenFileUnavailableOrBusy &&
                         _ftpStatusCode != FtpStatusCode.ActionNotTakenFilenameNotAllowed &&
                         _ftpStatusCode != FtpStatusCode.FileCommandPending)
+                        {
                             loopCount--;
+                        } else if (_ftpStatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+                        {
+                            loopCount = 0;
+                        }                            
                     }
                 } while (_status == FTPDownloaderStatus.weberroroccured && loopCount > 0);
                 _status = FTPDownloaderStatus.stopped;

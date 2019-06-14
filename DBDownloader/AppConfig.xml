@@ -1,12 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <RegFile>D:\Projects\460_197505.reg</RegFile>
-  <OperationalUpdateDirectory>D:\Projects\OperUp</OperationalUpdateDirectory>
-  <DBDirectory>D:\Projects\DBFiles</DBDirectory>
+  <RegFile>D:\Projects\KodUp\746_314267.reg</RegFile>
+  <OperationalUpdateDirectory>D:\Projects\KodUp\OperUp</OperationalUpdateDirectory>
+  <DBDirectory>D:\Projects\KodUp\DBFiles</DBDirectory>
   <IsTechnicalRegulationReform>false</IsTechnicalRegulationReform>
   <ConnectionInitFile>FtpConfiguration.dat</ConnectionInitFile>
-  <UseProxy>true</UseProxy>
-  <UsePassiveFTP>false</UsePassiveFTP>
+  <UseProxy>false</UseProxy>
+  <UsePassiveFTP>true</UsePassiveFTP>
   <ProxyAddress />
   <DelayedStart>0001-01-01T00:00:00</DelayedStart>
   <KTServices>MpsSvc</KTServices>

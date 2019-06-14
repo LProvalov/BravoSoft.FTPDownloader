@@ -1,21 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <FtpConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <FtpSourcePath>ftp://89.109.33.139</FtpSourcePath>
+  <FtpSourcePath> ftp://82.208.93.53</FtpSourcePath>
   <DBPath>base</DBPath>
-  <AutocomplectsPath>base/xml</AutocomplectsPath>
-  <ProductsPath>base/xml</ProductsPath>
+  <AutocomplectsPath>xml</AutocomplectsPath>
+  <ProductsPath>xml</ProductsPath>
   <!--ProductModelItems>
     <ProductFileName>Products_6.4.0_old.xml</ProductFileName>
     <ProductFileNameUI>Products v6.4.0 OLD</ProductFileNameUI>
     <ProductBasePath>base</ProductBasePath>
   </ProductModelItems-->
   <ProductModelItems>
-    <ProductFileName>Products_6.4.xml</ProductFileName>
+    <ProductFileName>Products_6.4.0.xml</ProductFileName>
     <ProductFileNameUI>Products v6.4.0</ProductFileNameUI>
     <ProductBasePath>base</ProductBasePath>
   </ProductModelItems>
   <ReportsPath>update_logs</ReportsPath>
   <User>user1</User>
-  <Password>6puVBNdX</Password>
+  <Password>1q2w3e</Password>
   <ClearFolder>operup/new</ClearFolder>
 </FtpConfigurationModel>
