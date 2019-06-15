@@ -72,7 +72,7 @@ namespace DBDownloader.Engine
                     fs.PercentOfComplete = df.Downloader.PercentOfComplete;
                     fs.DestFileSize = df.DestinationFileDownloadedLength;
 
-                    fs.SourceFileSize = df.Downloader.BytesSourceFileSize;
+                    fs.SourceFileSize = df.Downloader.BytesOfFileThatNeedToBeDownloaded;
                     fs.IsUpdateNeeded = df.IsUpdateNeeded;
                     fs.IsErrorOccured = df.IsErrorOccured;
                     fs.ErrorMessage = df.ErrorMessage;
@@ -97,7 +97,8 @@ namespace DBDownloader.Engine
                 Configuration configuration = Configuration.Instance;
                 FileInfo destinationFileInfo = destinationFile;
                 Uri sourceFileUri = new Uri(sourceFileUrl);
-                DownloadFile df = new DownloadFile(networkCredential,
+                DownloadFile df = new DownloadFile(/*networkCredential,*/
+                    FtpClient.CreateClient(),
                     destinationFileInfo, sourceFileUri,
                     configuration.UseProxy, configuration.ProxyAddress, configuration.UsePassiveFTP,
                     creationFileDateTime,

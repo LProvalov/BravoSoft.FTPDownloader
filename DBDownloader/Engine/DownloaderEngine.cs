@@ -388,13 +388,7 @@ namespace DBDownloader.Engine
                             Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}", 
                                 FtpConfiguration.Instance.FtpSourcePath, 
                                 FtpConfiguration.Instance.ClearFolder, item.Name));
-                            FTPDownloader itemDownloader = new FTPDownloader(networkCredential, destinationFile, sourceFile);
-                            itemDownloader.UsePassiveFTP = configuration.UsePassiveFTP;
-                            if (useProxy)
-                            {
-                                itemDownloader.UseProxy = true;
-                                itemDownloader.ProxyAddress = proxyAddress;
-                            }
+                            FTPDownloader itemDownloader = new FTPDownloader(FtpClient.CreateClient(), destinationFile, sourceFile);
                             itemDownloader.BeginAsync().Wait();
                         }
                     }

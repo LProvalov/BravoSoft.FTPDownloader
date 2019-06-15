@@ -9,5 +9,7 @@ namespace DBDownloader.Net
     {
         FileStruct[] ListDirectory(string path);
         IEnumerable<FileStruct> FillCreateDateTime(string path, FileStruct[] filestructs);
+        long GetSourceFileSize(Uri sourceUri);
+        //void DownloadSourceToDestinationFile(Uri sourceUri, NetFileInfo destinationFile);
     }
 }

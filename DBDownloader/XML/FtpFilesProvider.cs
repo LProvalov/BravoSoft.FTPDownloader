@@ -39,13 +39,7 @@ namespace DBDownloader.XML
             }
             Uri sourceUri = new Uri(sourcePath);
             FTPDownloader downloader =
-                new FTPDownloader(credential, destinationFile, sourceUri);
-            downloader.UsePassiveFTP = usePassiveFtp;
-            if (useProxy)
-            {
-                downloader.UseProxy = useProxy;
-                downloader.ProxyAddress = proxyAddress;
-            }
+                new FTPDownloader(FtpClient.CreateClient(), destinationFile, sourceUri);
             downloader.BeginAsync().Wait();
             destinationFile.Refresh();
             if (destinationFile.Exists) return destinationFile;
@@ -72,14 +66,8 @@ namespace DBDownloader.XML
                     destinationFile.Refresh();
                 }
                 FTPDownloader downloader =
-                    new FTPDownloader(credential, destinationFile, sourceUri);
-                downloader.UsePassiveFTP = usePassiveFtp;
-                if (useProxy)
-                {
-                    downloader.UseProxy = useProxy;
-                    downloader.ProxyAddress = proxyAddress;
-                }
-
+                    new FTPDownloader(FtpClient.CreateClient(), destinationFile, sourceUri);
+                
                 downloader.BeginAsync().Wait();
                 destinationFile.Refresh();
                 if (destinationFile.Exists) productFiles.Add(destinationFile);

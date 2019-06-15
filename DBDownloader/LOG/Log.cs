@@ -1,4 +1,5 @@
 ﻿using NLog;
+using System;
 
 namespace DBDownloader.MainLogger
 {
@@ -27,6 +28,20 @@ namespace DBDownloader.MainLogger
         public static void WriteTrace(string message)
         {
             _logger.Trace(message);
+        }
+
+        public static void WriteTraceF(string tag, string formatMessageString, params object[] args)
+        {
+            string message = string.Format(formatMessageString, args);
+            WriteTraceF(tag, message);
+        }
+
+        public static void WriteTraceF(string tag, string message)
+        {
+            _logger.Trace(
+                string.Format("{0} | {1} - {2}", 
+                new DateTime().ToShortTimeString(), 
+                tag, message));
         }
 
         public static void WriteTrace(string formatString, params object[] args)

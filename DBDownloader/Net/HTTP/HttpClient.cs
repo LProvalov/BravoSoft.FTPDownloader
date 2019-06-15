@@ -12,6 +12,11 @@ namespace DBDownloader.Net.HTTP
             throw new NotImplementedException();
         }
 
+        public long GetSourceFileSize(Uri sourceUri)
+        {
+            throw new NotImplementedException();
+        }
+
         public FileStruct[] ListDirectory(string path)
         {
             throw new NotImplementedException();

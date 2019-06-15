@@ -12,12 +12,13 @@ namespace DBDownloader.Net
     {
         private FileInfo destinationFile;
         private FileInfo destinationFileCopy;
+        private INetClient netClient;
         private Uri sourceFileUri;
         private bool isUpdateNeeded;
         private FTPDownloader downloader;
-        private bool useProxy;
-        private string proxyAddress;
-        private NetworkCredential credential;
+        //private bool useProxy;
+        //private string proxyAddress;
+        //private NetworkCredential credential;
         private DateTime creationFileDateTime;
         private bool downloadingEnd = false;
         private int repeatCount;
@@ -25,14 +26,16 @@ namespace DBDownloader.Net
 
         public event ErrorEventHandler errorEvent;
 
-        public DownloadFile(NetworkCredential networkCredential,
+        public DownloadFile(/*NetworkCredential networkCredential,*/
+            INetClient netClient,
             FileInfo destinationFile, Uri sourceFileUri,
             bool useProxy, string proxyAddress, bool usePassiveFTP,
             DateTime creationFileDateTime,
             bool isUpdateNeeded = true,
             long sourceSize = 0)
         {
-            this.credential = networkCredential;
+            //this.credential = networkCredential;
+            this.netClient = netClient;
             this.destinationFile = destinationFile;
             this.creationFileDateTime = creationFileDateTime;
             string fileName = destinationFile.Name.Remove(destinationFile.Name.IndexOf(destinationFile.Extension),
@@ -41,12 +44,13 @@ namespace DBDownloader.Net
                 destinationFile.DirectoryName, fileName, destinationFile.Extension));
             this.sourceFileUri = sourceFileUri;
             this.isUpdateNeeded = isUpdateNeeded;
-            this.useProxy = useProxy;
-            this.proxyAddress = proxyAddress;
-            downloader = new FTPDownloader(networkCredential, this.destinationFileCopy, this.sourceFileUri, sourceSize);
-            downloader.UseProxy = useProxy;
-            downloader.ProxyAddress = proxyAddress;
-            downloader.UsePassiveFTP = usePassiveFTP;
+            //this.useProxy = useProxy;
+            //this.proxyAddress = proxyAddress;
+            //downloader = new FTPDownloader(networkCredential, this.destinationFileCopy, this.sourceFileUri, sourceSize);
+            downloader = new FTPDownloader(netClient as FtpClient, destinationFileCopy, sourceFileUri, sourceSize);
+            //downloader.UseProxy = useProxy;
+            //downloader.ProxyAddress = proxyAddress;
+            //downloader.UsePassiveFTP = usePassiveFTP;
             downloader.DownloadEndEvent += OverwriteDestinationFile;
             downloader.ErrorOccuredEvent += ErrorEventOccurred;
         }

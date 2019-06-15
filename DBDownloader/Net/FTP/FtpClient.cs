@@ -234,20 +234,25 @@ namespace DBDownloader.Net.FTP
             this.password = password;
         }
 
+        private const string TAG = "FTP Client";
         private bool useSSL = false;
-        public bool UseSSL { get { return useSSL; } set { useSSL = value; } }
         private bool keepAlive = false;
-        public bool KeepAlive { get { return keepAlive; } set { keepAlive = value; } }
         private bool useBinary = false;
-        public bool UseBinary { get { return useBinary; } set { useBinary = value; } }
         private bool usePassive = false;
-        public bool UsePassive { get { return usePassive; } set { usePassive = value; } }
-
         private int timeout = 0;
-        public int Timeout { get { return timeout; } set { if (value > 0) timeout = value; } }
-
         private bool useProxy = false;
         private string proxyAddress = string.Empty;
+        private DownloadingStatus _downloadingStatus;
+        private CancellationTokenSource downloadingCancellationToken;
+        private const int BUFFER_SIZE = 1024;
+        private const int MULTIPLIER = 1;
+        private long _bytesDownloaded;
+
+        public bool UseSSL { get { return useSSL; } set { useSSL = value; } }
+        public bool KeepAlive { get { return keepAlive; } set { keepAlive = value; } }
+        public bool UseBinary { get { return useBinary; } set { useBinary = value; } }
+        public bool UsePassive { get { return usePassive; } set { usePassive = value; } }
+        public int Timeout { get { return timeout; } set { if (value > 0) timeout = value; } }
         public string ProxyAddress
         {
             get { return proxyAddress; }
@@ -277,7 +282,7 @@ namespace DBDownloader.Net.FTP
             webRequest.Method = ftpMethod;
             return webRequest;
         }
-        private FtpWebRequest CreateWebRequest(Uri uri, string method)
+        public FtpWebRequest CreateWebRequest(Uri uri, string method)
         {
             FtpWebRequest request = WebRequest.Create(uri) as FtpWebRequest;
             if (useProxy)
@@ -291,12 +296,6 @@ namespace DBDownloader.Net.FTP
             return request;
         }
 
-        private DownloadingStatus _downloadingStatus;
-        private CancellationTokenSource downloadingCancellationToken;
-        private const int BUFFER_SIZE = 1024;
-        private const int MULTIPLIER = 1;
-        private long _bytesDownloaded;
-        
         private void DownloadFile(string sourceFile, string destinationFile)
         {
             _downloadingStatus = DownloadingStatus.InProgress;
@@ -465,5 +464,66 @@ namespace DBDownloader.Net.FTP
                 Log.WriteError("Report - error: {0}", ex.Message);
             }
         }
+
+        public long GetSourceFileSize(Uri sourceUri)
+        {
+            long sourceFileSize = 0;
+            FtpWebRequest request = CreateWebRequest(sourceUri, WebRequestMethods.Ftp.GetFileSize);
+            request.UseBinary = false;
+            request.KeepAlive = true;
+            try
+            {
+                FtpWebResponse response = (FtpWebResponse)request.GetResponse();
+                sourceFileSize = response.ContentLength;
+                Log.WriteTraceF(TAG, "GetSourceFileSize: {0} bytes", sourceFileSize);
+                response.Close();
+            }
+            catch (WebException wEx)
+            {
+                String status = ((FtpWebResponse)wEx.Response).StatusDescription;
+                Log.WriteTraceF(TAG, "GetSourceFileSize Error: {0}", status);
+                if (sourceFileSize < 0) sourceFileSize = 0;
+            }
+            return sourceFileSize;
+        }
+
+
+
+        /*
+        public void DownloadSourceToDestinationFile(Uri sourceUri, 
+            FileInfo destinationFile, 
+            CancellationTokenSource cancellationToken)
+        {
+            FileStream localFileStream = null;
+            FtpWebRequest request = CreateWebRequest(sourceUri, 
+                WebRequestMethods.Ftp.DownloadFile);
+            request.UseBinary = true;
+            
+            if (destinationFile.Exists)
+            {
+                request.ContentOffset = destinationFile.Length;
+                localFileStream = new FileStream(destinationFile.FullName,
+                    FileMode.Append, FileAccess.Write);
+            }
+            else
+            {
+                localFileStream = new FileStream(destinationFile.FullName,
+                    FileMode.Create, FileAccess.Write);
+            }
+            WebResponse response = request.GetResponse();
+            Stream responseStream = null;
+            using (responseStream = response.GetResponseStream())
+            {
+                byte[] buffer = new byte[BUFFER_SIZE];
+                int bytesRead = responseStream.Read(buffer, 0, BUFFER_SIZE);
+
+                while (bytesRead != 0 && !cancellationToken.IsCancellationRequested)
+                {
+                    localFileStream.Write(buffer, 0, BUFFER_SIZE);
+                    bytesRead = responseStream.Read(buffer, 0, BUFFER_SIZE);
+                }
+            }
+        }
+        */
     }
 }
