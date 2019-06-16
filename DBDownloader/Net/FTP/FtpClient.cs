@@ -232,6 +232,9 @@ namespace DBDownloader.Net.FTP
             this.host = host;
             this.username = username;
             this.password = password;
+            useProxy = Configuration.Instance.UseProxy;
+            proxyAddress = Configuration.Instance.ProxyAddress;
+            usePassive = Configuration.Instance.UsePassiveFTP;
         }
 
         private const string TAG = "FTP Client";
@@ -486,8 +489,6 @@ namespace DBDownloader.Net.FTP
             }
             return sourceFileSize;
         }
-
-
 
         /*
         public void DownloadSourceToDestinationFile(Uri sourceUri, 

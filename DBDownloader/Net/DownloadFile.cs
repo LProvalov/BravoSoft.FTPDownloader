@@ -10,23 +10,24 @@ namespace DBDownloader.Net
 {
     public class DownloadFile
     {
-        private FileInfo destinationFile;
         private FileInfo destinationFileCopy;
         private INetClient netClient;
-        private Uri sourceFileUri;
-        private bool isUpdateNeeded;
         private FTPDownloader downloader;
-        //private bool useProxy;
-        //private string proxyAddress;
-        //private NetworkCredential credential;
         private DateTime creationFileDateTime;
         private bool downloadingEnd = false;
-        private int repeatCount;
-        private int delayTime;
 
+        public string Title { get; set; }
+        public int DelayTime { get; set; }
+        public int RepeatCount { get; set; }
+        public Uri SourceFileUri { get; private set; }
+        public bool IsUpdateNeeded { get; private set; }
+        public FileInfo DestinationFile { get; private set; }
         public event ErrorEventHandler errorEvent;
 
-        public DownloadFile(/*NetworkCredential networkCredential,*/
+        public bool IsErrorOccured { get { return downloader.IsErrorOccured; } }
+        public string ErrorMessage { get { return downloader.ErrorMessage; } }
+
+        public DownloadFile(
             INetClient netClient,
             FileInfo destinationFile, Uri sourceFileUri,
             bool useProxy, string proxyAddress, bool usePassiveFTP,
@@ -34,32 +35,25 @@ namespace DBDownloader.Net
             bool isUpdateNeeded = true,
             long sourceSize = 0)
         {
-            //this.credential = networkCredential;
             this.netClient = netClient;
-            this.destinationFile = destinationFile;
+            DestinationFile = destinationFile;
             this.creationFileDateTime = creationFileDateTime;
             string fileName = destinationFile.Name.Remove(destinationFile.Name.IndexOf(destinationFile.Extension),
                 destinationFile.Extension.Length);
-            this.destinationFileCopy = new FileInfo(string.Format(@"{0}\{1}_copy{2}",
+            destinationFileCopy = new FileInfo(string.Format(@"{0}\{1}_copy{2}",
                 destinationFile.DirectoryName, fileName, destinationFile.Extension));
-            this.sourceFileUri = sourceFileUri;
-            this.isUpdateNeeded = isUpdateNeeded;
-            //this.useProxy = useProxy;
-            //this.proxyAddress = proxyAddress;
-            //downloader = new FTPDownloader(networkCredential, this.destinationFileCopy, this.sourceFileUri, sourceSize);
+            SourceFileUri = sourceFileUri;
+            IsUpdateNeeded = isUpdateNeeded;
             downloader = new FTPDownloader(netClient as FtpClient, destinationFileCopy, sourceFileUri, sourceSize);
-            //downloader.UseProxy = useProxy;
-            //downloader.ProxyAddress = proxyAddress;
-            //downloader.UsePassiveFTP = usePassiveFTP;
             downloader.DownloadEndEvent += OverwriteDestinationFile;
             downloader.ErrorOccuredEvent += ErrorEventOccurred;
         }
 
         public Task BeginAsync()
         {
-            downloader.RepeatCount = repeatCount;
-            downloader.DelayTime = delayTime;
-            if (isUpdateNeeded) return downloader.BeginAsync();
+            downloader.RepeatCount = RepeatCount;
+            downloader.DelayTime = DelayTime;
+            if (IsUpdateNeeded) return downloader.BeginAsync();
             else return new Task(() => { });
         }
 
@@ -67,22 +61,22 @@ namespace DBDownloader.Net
         {
             try
             {
-                Log.WriteTrace("OverwriteDestinationFile: {0} to {1}", destinationFileCopy.FullName, destinationFile.FullName);
+                Log.WriteTrace("OverwriteDestinationFile: {0} to {1}", destinationFileCopy.FullName, DestinationFile.FullName);
                 if (downloader.Status == FTPDownloader.FTPDownloaderStatus.inprogress)
                 {
                     Log.WriteTrace("OverwriteDestinationFile downloader status: {0}", downloader.Status);
-                    this.destinationFile.Refresh();
+                    DestinationFile.Refresh();
                     this.destinationFileCopy.Refresh();
-                    if (destinationFile.Exists)
+                    if (DestinationFile.Exists)
                     {
                         Log.WriteTrace("File exists, replace");
                         if (this.destinationFileCopy.Exists && this.destinationFileCopy.Length > 0)
                         {
-                            File.Replace(this.destinationFileCopy.FullName, this.destinationFile.FullName,
+                            File.Replace(this.destinationFileCopy.FullName, DestinationFile.FullName,
                                 null, false);
-                            File.SetCreationTime(this.destinationFile.FullName, this.creationFileDateTime);
-                            File.SetLastAccessTime(this.destinationFile.FullName, this.creationFileDateTime);
-                            File.SetLastWriteTime(this.destinationFile.FullName, this.creationFileDateTime);
+                            File.SetCreationTime(DestinationFile.FullName, this.creationFileDateTime);
+                            File.SetLastAccessTime(DestinationFile.FullName, this.creationFileDateTime);
+                            File.SetLastWriteTime(DestinationFile.FullName, this.creationFileDateTime);
                             Log.WriteTrace("File successfuly replaced");
                         }
                     }
@@ -91,11 +85,11 @@ namespace DBDownloader.Net
                         Log.WriteTrace("File not exists, move");
                         if (this.destinationFileCopy.Exists && this.destinationFileCopy.Length > 0)
                         {
-                            Log.WriteTrace("File {0} move to {1}", destinationFileCopy.Name, destinationFile.FullName);
-                            destinationFileCopy.MoveTo(destinationFile.FullName);
-                            File.SetCreationTime(this.destinationFile.FullName, this.creationFileDateTime);
-                            File.SetLastAccessTime(this.destinationFile.FullName, this.creationFileDateTime);
-                            File.SetLastWriteTime(this.destinationFile.FullName, this.creationFileDateTime);
+                            Log.WriteTrace("File {0} move to {1}", destinationFileCopy.Name, DestinationFile.FullName);
+                            destinationFileCopy.MoveTo(DestinationFile.FullName);
+                            File.SetCreationTime(DestinationFile.FullName, this.creationFileDateTime);
+                            File.SetLastAccessTime(DestinationFile.FullName, this.creationFileDateTime);
+                            File.SetLastWriteTime(DestinationFile.FullName, this.creationFileDateTime);
                             Log.WriteTrace("File successfuly moved");
                         }
                     }
@@ -103,7 +97,7 @@ namespace DBDownloader.Net
             }
             catch (Exception ex)
             {
-                Log.WriteError("OverwriteDestinationFile ({0}) exception: {1}", destinationFile.FullName, ex.Message);
+                Log.WriteError("OverwriteDestinationFile ({0}) exception: {1}", DestinationFile.FullName, ex.Message);
                 if (ex.InnerException != null) Log.WriteError("Internal exception: {0}", ex.InnerException.Message);
             }
             finally
@@ -111,7 +105,7 @@ namespace DBDownloader.Net
                 downloadingEnd = true;
             }
         }
-        public FileInfo DestinationFile { get { return destinationFile; } }
+        
         public long DestinationFileDownloadedLength
         {
             get
@@ -121,33 +115,50 @@ namespace DBDownloader.Net
                     destinationFileCopy.Refresh();
                     return destinationFileCopy.Length;
                 }
-                if (destinationFile.Exists && downloadingEnd)
+                if (DestinationFile.Exists && downloadingEnd)
                 {
-                    destinationFile.Refresh();
-                    return destinationFile.Length;
+                    DestinationFile.Refresh();
+                    return DestinationFile.Length;
                 }
                 return 0;
             }
         }
-        public Uri SourceFileUri { get { return sourceFileUri; } }
-        public bool IsUpdateNeeded { get { return isUpdateNeeded; } }
-        public FTPDownloader Downloader { get { return downloader; } }
-        public string Title { get; set; }
-        public int DelayTime
-        {
-            get { return delayTime; }
-            set { delayTime = value; }
-        }
-        public int RepeatCount
-        {
-            get { return repeatCount; }
-            set { repeatCount = value; }
-        }
-        public bool IsErrorOccured { get { return downloader.IsErrorOccured; } }
-        public string ErrorMessage { get { return downloader.ErrorMessage; } }
+        
         public void ErrorEventOccurred(object sender, ErrorEventArgs args)
         {
             if (errorEvent != null) errorEvent.BeginInvoke(this, args, null, null);
+        }
+
+        public void CancelDownloading()
+        {
+            if (downloader != null && downloader.Status == FTPDownloader.FTPDownloaderStatus.inprogress)
+            {
+                downloader.Cancel();
+            }
+        }
+
+        public int GetPercentOfComplete()
+        {
+            if (downloader != null)
+            {
+                return downloader.PercentOfComplete;
+            }
+            return 0;
+        }
+
+        public long GetBytesOfFileThatNeedToBeDownloaded()
+        {
+            if (downloader != null)
+            {
+                return downloader.BytesOfFileThatNeedToBeDownloaded;
+            }
+            return 0L;
+        }
+
+        public FTPDownloader.FTPDownloaderStatus GetDownloaderStatus()
+        {
+            if (downloader != null) return downloader.Status;
+            return FTPDownloader.FTPDownloaderStatus.stopped;
         }
     }
 }

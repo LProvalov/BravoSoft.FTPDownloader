@@ -9,6 +9,7 @@ using DBDownloader.ConfigReader;
 using DBDownloader.Engine;
 using System.IO;
 using DBDownloader.LOG;
+using DBDownloader.Services;
 
 namespace DBDownloader
 {
@@ -79,6 +80,8 @@ namespace DBDownloader
             schedulerModel = new SchedulerModel();
             Configuration configuration = Configuration.GetInstance();
             configuration.LoadConfiguration();
+            FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
+            UserService.Instance.SetUserPassword(ftpConfiguration.User, ftpConfiguration.Password);
 
             if (configuration.DelayedStart > DateTime.Now)
             {

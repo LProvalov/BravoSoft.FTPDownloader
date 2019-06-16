@@ -134,6 +134,7 @@
     <Compile Include="Scheduler.xaml.cs">
       <DependentUpon>Scheduler.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Services\UserService.cs" />
     <Compile Include="WinServices\KTServices.cs" />
     <Compile Include="WinServices\ServiceWorker.cs" />
     <Compile Include="Settings.xaml.cs">

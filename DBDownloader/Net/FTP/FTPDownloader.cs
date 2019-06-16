@@ -22,7 +22,6 @@ namespace DBDownloader.Net.FTP
         private const int BUFFER_SIZE = 1024;
 
         private Uri sourceUri;
-        //private NetworkCredential credential;
         private FileInfo destinationFileInfo;
         private FtpClient ftpClient = null;
 

@@ -21,7 +21,6 @@ namespace DBDownloader.Engine
 
         private bool isLoading = false;
         private Uri reportDirUrl;
-        //private FTPWorker ftpWorker;
         private DataProvider dataProvider;
 
         private bool isLoadedEnd = false;
@@ -35,7 +34,6 @@ namespace DBDownloader.Engine
         {
             this.networkCredential = networkCredential;
             this.reportDirUrl = reportDirUrl;
-            //ftpWorker = new FTPWorker(networkCredential);
             dataProvider = new DataProvider();
         }
                
@@ -51,7 +49,7 @@ namespace DBDownloader.Engine
                     FileStatus fs = new FileStatus();
                     fs.Title = df.Title;
                     fs.FileName = df.DestinationFile.Name;
-                    switch (df.Downloader.Status)
+                    switch (df.GetDownloaderStatus())
                     {
                         case FTPDownloader.FTPDownloaderStatus.inprogress:
                             fs.Status = "In progress...";
@@ -69,10 +67,10 @@ namespace DBDownloader.Engine
                             fs.Status = "Web Error Occured";
                             break;
                     }
-                    fs.PercentOfComplete = df.Downloader.PercentOfComplete;
+                    fs.PercentOfComplete = df.GetPercentOfComplete();
                     fs.DestFileSize = df.DestinationFileDownloadedLength;
 
-                    fs.SourceFileSize = df.Downloader.BytesOfFileThatNeedToBeDownloaded;
+                    fs.SourceFileSize = df.GetBytesOfFileThatNeedToBeDownloaded();
                     fs.IsUpdateNeeded = df.IsUpdateNeeded;
                     fs.IsErrorOccured = df.IsErrorOccured;
                     fs.ErrorMessage = df.ErrorMessage;
@@ -137,7 +135,7 @@ namespace DBDownloader.Engine
                         }
                         catch (OperationCanceledException)
                         {
-                            df.Downloader.Cancel();
+                            df.CancelDownloading();
                             isLoadedEnd = false;
                             break;
                         }
