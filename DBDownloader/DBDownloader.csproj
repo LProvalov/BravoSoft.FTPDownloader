@@ -114,6 +114,7 @@
     <Compile Include="ConfigReader\FtpConfiguration.cs" />
     <Compile Include="ConfigReader\FtpConfigurationModel.cs" />
     <Compile Include="ConfigReader\ProductVersionModel.cs" />
+    <Compile Include="Net\HTTP\KodupPageParser.cs" />
     <Compile Include="Providers\DataProvider.cs" />
     <Compile Include="Engine\DownloaderEngine.cs" />
     <Compile Include="Engine\Events\StatusEntryArgs.cs" />
