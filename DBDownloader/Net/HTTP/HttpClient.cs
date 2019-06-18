@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DBDownloader.Net.HTTP
 {
@@ -53,6 +55,14 @@ namespace DBDownloader.Net.HTTP
 
         private readonly string server_ip = "82.208.93.53";
 
+        private readonly int BYTE_BUFFER_SIZE = 1000 * 1000; // 1 mb
+        private long bytesDownloaded;
+
+        private CancellationTokenSource loopCancellationTokenSource = null;
+
+        public int RepeatCount { get; set; } = 10;
+        public int DelayTime { get; set; } = 10000;
+
         private Cookie authCookie = null;
         private List<Cookie> add_cookies = new List<Cookie>();
         private KodupPageParser kodupPageParser = new KodupPageParser();
@@ -86,6 +96,82 @@ namespace DBDownloader.Net.HTTP
             }
 
             return request;
+        }
+
+        private bool DownloadFile(Uri sourceFile, FileInfo destinationFileInfo)
+        {
+
+            HttpWebRequest request = CreateHttpRequest(sourceFile, WebRequestMethods.Http.Get);
+            FileStream fileStream = null;
+            try
+            {
+                if (destinationFileInfo.Exists)
+                {
+                    request.AddRange(destinationFileInfo.Length);
+                    fileStream = destinationFileInfo.OpenWrite();
+                    fileStream.Seek(fileStream.Length, SeekOrigin.Current);
+                    bytesDownloaded = destinationFileInfo.Length;
+                }
+                else
+                {
+                    fileStream = new FileStream(destinationFileInfo.FullName, FileMode.Create);
+                    bytesDownloaded = 0;
+                }
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    Stream responseStream = response.GetResponseStream();
+                    byte[] buffer = new byte[BYTE_BUFFER_SIZE];
+                    int readByteSize = responseStream.Read(buffer, 0, BYTE_BUFFER_SIZE);
+                    while (readByteSize != 0)
+                    {
+                        fileStream.Write(buffer, 0, readByteSize);
+                        bytesDownloaded += readByteSize;
+                        readByteSize = responseStream.Read(buffer, 0, BYTE_BUFFER_SIZE);
+                    }
+                }
+            }
+            finally
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                }
+            }
+            return true;
+        }
+
+        public Task DownloadFileAsync(Uri sourceFile, FileInfo destinationFileInfo)
+        {
+            return Task.Factory.StartNew(() =>
+            {
+                int loopCount = RepeatCount;
+                do
+                {
+                    try
+                    {
+                        if (DownloadFile(sourceFile, destinationFileInfo))
+                            break;
+                    }
+                    catch (WebException wEx)
+                    {
+                        using (loopCancellationTokenSource = new CancellationTokenSource())
+                        {
+                            loopCancellationTokenSource.Token.WaitHandle.WaitOne(DelayTime);
+                        }
+                        loopCancellationTokenSource = null;
+                        if (wEx.Status == WebExceptionStatus.RequestCanceled)
+                        {
+                            loopCount = 0;
+                        }
+                        else
+                        {
+                            loopCount--;
+                        }
+                    }
+
+                } while (loopCount > 0);
+            });
         }
 
         public FileStruct[] GetListKodup()
