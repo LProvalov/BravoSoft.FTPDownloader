@@ -2,9 +2,10 @@
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-
+using DBDownloader.ConfigReader;
 using DBDownloader.MainLogger;
 using DBDownloader.Net.FTP;
+using DBDownloader.Net.HTTP;
 
 namespace DBDownloader.Net
 {
@@ -12,7 +13,7 @@ namespace DBDownloader.Net
     {
         private FileInfo destinationFileCopy;
         private INetClient netClient;
-        private FTPDownloader downloader;
+        private NetFileDownloader downloader;
         private DateTime creationFileDateTime;
         private bool downloadingEnd = false;
 
@@ -44,9 +45,15 @@ namespace DBDownloader.Net
                 destinationFile.DirectoryName, fileName, destinationFile.Extension));
             SourceFileUri = sourceFileUri;
             IsUpdateNeeded = isUpdateNeeded;
-            downloader = new FTPDownloader(netClient as FtpClient, destinationFileCopy, sourceFileUri, sourceSize);
-            downloader.DownloadEndEvent += OverwriteDestinationFile;
-            downloader.ErrorOccuredEvent += ErrorEventOccurred;
+            if (Configuration.Instance.NetClientType == 2)
+            {
+                downloader = new HttpFileDownloader(destinationFileCopy, sourceFileUri, sourceSize);
+            } else
+            {
+                downloader = new FtpFileDownloader(netClient as FtpClient, destinationFileCopy, sourceFileUri, sourceSize);
+            }            
+            downloader.downloadEndEvent += OverwriteDestinationFile;
+            downloader.errorOccuredEvent += ErrorEventOccurred;
         }
 
         public Task BeginAsync()
@@ -57,12 +64,12 @@ namespace DBDownloader.Net
             else return new Task(() => { });
         }
 
-        private void OverwriteDestinationFile(object sender, EventArgs args)
+        private void OverwriteDestinationFile()
         {
             try
             {
                 Log.WriteTrace("OverwriteDestinationFile: {0} to {1}", destinationFileCopy.FullName, DestinationFile.FullName);
-                if (downloader.Status == FTPDownloader.FTPDownloaderStatus.inprogress)
+                if (downloader.Status == NetFileDownloader.NetDownloaderStatus.inprogress)
                 {
                     Log.WriteTrace("OverwriteDestinationFile downloader status: {0}", downloader.Status);
                     DestinationFile.Refresh();
@@ -124,14 +131,14 @@ namespace DBDownloader.Net
             }
         }
         
-        public void ErrorEventOccurred(object sender, ErrorEventArgs args)
+        public void ErrorEventOccurred(ErrorEventArgs args)
         {
             if (errorEvent != null) errorEvent.BeginInvoke(this, args, null, null);
         }
 
         public void CancelDownloading()
         {
-            if (downloader != null && downloader.Status == FTPDownloader.FTPDownloaderStatus.inprogress)
+            if (downloader != null && downloader.Status == NetFileDownloader.NetDownloaderStatus.inprogress)
             {
                 downloader.Cancel();
             }
@@ -155,10 +162,10 @@ namespace DBDownloader.Net
             return 0L;
         }
 
-        public FTPDownloader.FTPDownloaderStatus GetDownloaderStatus()
+        public NetFileDownloader.NetDownloaderStatus GetDownloaderStatus()
         {
             if (downloader != null) return downloader.Status;
-            return FTPDownloader.FTPDownloaderStatus.stopped;
+            return NetFileDownloader.NetDownloaderStatus.stopped;
         }
     }
 }

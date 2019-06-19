@@ -197,7 +197,7 @@ namespace DBDownloader.Engine
                     sourceSize = sourceFileInfo.Length;
                     creationFileDateTime = sourceFileInfo.LastModified;
                     if (!destinationFile.Exists) isUpdateNeeded = true;
-                    else if (sourceFileInfo.LastModified.Date >= destinationFile.CreationTime.Date ||
+                    else if (sourceFileInfo.LastModified.Date > destinationFile.CreationTime.Date ||
                         sourceFileInfo.LastModified.Date < destinationFile.CreationTime.Date && (sourceSize != 0 && destinationFile.Length != sourceSize))
                     {
                         Log.WriteTrace("File {0} needed to be updated, destDate :{1}, sourceDate :{2}, sourceSize: {3}, destLength: {4}",

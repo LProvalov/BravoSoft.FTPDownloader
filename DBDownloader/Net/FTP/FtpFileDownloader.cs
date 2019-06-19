@@ -1,117 +1,33 @@
-﻿using System;
+﻿using DBDownloader.MainLogger;
+using System;
 using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
-using DBDownloader.MainLogger;
-
 namespace DBDownloader.Net.FTP
 {
-    public class FTPDownloader
+    public sealed class FtpFileDownloader : NetFileDownloader
     {
-        public enum FTPDownloaderStatus
-        {
-            stopped,
-            stopping,
-            inprogress,
-            erroroccured,
-            weberroroccured
-        }
-
-        private const int BUFFER_SIZE = 1024 * 512;
-
-        private Uri sourceUri;
-        private FileInfo destinationFileInfo;
-        private FtpClient ftpClient = null;
-
-        private long bytesDownloaded;
-
-        private EventHandler cancelEventHandler;
-        private CancellationTokenSource cancellationToken;
-        private CancellationTokenSource loopCancellationTokenSource = null;
-
+        private FtpClient _ftpClient = null;
         private FtpStatusCode _ftpStatusCode;
         private bool deleteDestinationFile = false;
 
-        public int DelayTime {get; set;} = 10000;
-        public int RepeatCount {get; set;} = 10;
-
-        public event ErrorEventHandler ErrorOccuredEvent;
-        public event EventHandler DownloadEndEvent;
-        public event EventHandler NextDownloadAttenptOccurred;
-
-        public FTPDownloaderStatus Status { get; private set; }
-
-        public bool IsErrorOccured { get; set; } = false;
-        public string ErrorMessage { get; private set; } = string.Empty;
-        public long BytesOfFileThatNeedToBeDownloaded { get; private set;}
-        public int PercentOfComplete
+        public FtpFileDownloader(FtpClient ftpClient,
+            FileInfo destinationFileInfo, Uri sourceUri, 
+            long sourceSize = 0) : base(destinationFileInfo, sourceUri, sourceSize)
         {
-            get
-            {
-                long already = 0;
-                if (destinationFileInfo != null)
-                {
-                    destinationFileInfo.Refresh();
-                    already = destinationFileInfo.Exists ? destinationFileInfo.Length : 0;
-                }
-                return BytesOfFileThatNeedToBeDownloaded != 0 ?
-                    (int)((double)(bytesDownloaded + already) / BytesOfFileThatNeedToBeDownloaded * 100) : 0;
-            }
+            this._ftpClient = ftpClient;
         }
 
-        public class DateTimeEventArgs : EventArgs
+        private void DownloadFile(Uri sourceUri, FileInfo destinationFile)
         {
-            private DateTime _creationDateTime;
-            public DateTimeEventArgs(DateTime creationDateTime)
-            {
-                this._creationDateTime = creationDateTime;
-            }
-            public DateTime CreationFileDateTime { get { return _creationDateTime; } }
-        }
-
-        public FTPDownloader(
-            FtpClient ftpClient,
-            FileInfo destinationFileInfo, Uri sourceUri,
-            long sourceSize = 0)
-        {
-            this.ftpClient = ftpClient;
-            this.sourceUri = sourceUri;
-            this.destinationFileInfo = destinationFileInfo;
-            BytesOfFileThatNeedToBeDownloaded = sourceSize;
-            cancelEventHandler += (sender, obj) =>
-            {
-                if (cancellationToken != null) cancellationToken.Cancel();
-            };
-        }
-
-        public Task BeginAsync()
-        {
-            if (destinationFileInfo != null)
-            {
-                return ResumeFtpFileDownloadAsync(sourceUri, destinationFileInfo);
-            }
-            throw new ArgumentException("destinationFileInfo or credential cant be null");
-        }
-
-        public void Cancel()
-        {
-            Status = FTPDownloaderStatus.stopping;
-            if (loopCancellationTokenSource != null)
-                loopCancellationTokenSource.Cancel();
-            if (cancelEventHandler != null)
-                cancelEventHandler.Invoke(this, new EventArgs());
-        }
-
-        private void ResumeFtpFileDownload(Uri sourceUri, FileInfo destinationFile)
-        {
-            Status = FTPDownloaderStatus.inprogress;
+            Status = NetDownloaderStatus.inprogress;
             Log.WriteTrace("FTPDownloader - status inprogress");
             using (cancellationToken = new CancellationTokenSource())
             {
                 FileStream localfileStream = null;
-                FtpWebRequest request = ftpClient.CreateWebRequest(sourceUri, WebRequestMethods.Ftp.DownloadFile);
+                FtpWebRequest request = _ftpClient.CreateWebRequest(sourceUri, WebRequestMethods.Ftp.DownloadFile);
                 request.UseBinary = true;
 
                 WebResponse response = null;
@@ -161,20 +77,20 @@ namespace DBDownloader.Net.FTP
                         ReportWriter.AppendString("Inner Exception: {0}\n", wEx.InnerException.Message);
                     }
 
-                    Status = FTPDownloaderStatus.weberroroccured;
+                    Status = NetDownloaderStatus.weberroroccured;
                     IsErrorOccured = true;
                     ErrorMessage = wEx.Message;
-                    if (ErrorOccuredEvent != null) ErrorOccuredEvent.BeginInvoke(this, new ErrorEventArgs(wEx), null, null);
+                    if (errorOccuredEvent != null) errorOccuredEvent.BeginInvoke(new ErrorEventArgs(wEx), null, null);
                 }
                 catch (Exception ex)
                 {
                     Log.WriteError("FTPDownloader - error occurred:{0}", ex.Message);
                     if (ex.InnerException != null)
                         Log.WriteTrace("FTPDownloader - inner Exception:{0}", ex.InnerException.Message);
-                    Status = FTPDownloaderStatus.erroroccured;
+                    Status = NetDownloaderStatus.erroroccured;
                     IsErrorOccured = true;
                     ErrorMessage = ex.Message;
-                    if (ErrorOccuredEvent != null )ErrorOccuredEvent.BeginInvoke(this, new ErrorEventArgs(ex), null, null);
+                    if (errorOccuredEvent != null) errorOccuredEvent.BeginInvoke(new ErrorEventArgs(ex), null, null);
                 }
                 finally
                 {
@@ -198,7 +114,7 @@ namespace DBDownloader.Net.FTP
 
                         if (!cancellationToken.IsCancellationRequested)
                         {
-                            if (DownloadEndEvent != null) DownloadEndEvent.Invoke(this, new EventArgs());
+                            if (downloadEndEvent != null) downloadEndEvent.Invoke();
                             ReportWriter.AppendString("Загрузка файла {0} - ОК\n", sourceUri);
                         }
                         destinationFile.Refresh();
@@ -210,30 +126,30 @@ namespace DBDownloader.Net.FTP
                     }
                     catch { }
 
-                    if (Status != FTPDownloaderStatus.erroroccured && Status != FTPDownloaderStatus.weberroroccured)
-                        Status = FTPDownloaderStatus.stopped;
+                    if (Status != NetDownloaderStatus.erroroccured && Status != NetDownloaderStatus.weberroroccured)
+                        Status = NetDownloaderStatus.stopped;
                     Log.WriteTrace("FTPDownloader - stop downloading, status:{0}", Status);
                 }
             }
             cancellationToken = null;
         }
 
-        private Task ResumeFtpFileDownloadAsync(Uri sourceUri, FileInfo destinationFile)
+        protected override Task DownloadFileAsync(Uri sourceUri, FileInfo destinationFile)
         {
             return Task.Factory.StartNew(() =>
             {
                 Log.WriteTrace("Start downloading: {0}", sourceUri.AbsoluteUri);
-                BytesOfFileThatNeedToBeDownloaded = ftpClient.GetSourceFileSize(sourceUri);
+                BytesOfFileThatNeedToBeDownloaded = _ftpClient.GetSourceFileSize(sourceUri);
                 int loopCount = RepeatCount;
                 do
                 {
-                    if (loopCount != RepeatCount && NextDownloadAttenptOccurred != null)
+                    if (loopCount != RepeatCount && nextDownloadAttemptOccuredEvent != null)
                     {
-                        NextDownloadAttenptOccurred.BeginInvoke(this, new EventArgs(), null, null);
+                        nextDownloadAttemptOccuredEvent.BeginInvoke(null, null);
                     }
-                    ResumeFtpFileDownload(sourceUri, destinationFile);
+                    DownloadFile(sourceUri, destinationFile);
                     Log.WriteTrace("FTPDownloader status: {0}", Status);
-                    if (Status == FTPDownloaderStatus.weberroroccured)
+                    if (Status == NetDownloaderStatus.weberroroccured)
                     {
                         Log.WriteTrace("FTPDownloader WebError Occurred, wait {0}ms and repeat {1}", DelayTime, loopCount);
                         using (loopCancellationTokenSource = new CancellationTokenSource())
@@ -246,13 +162,14 @@ namespace DBDownloader.Net.FTP
                         _ftpStatusCode != FtpStatusCode.FileCommandPending)
                         {
                             loopCount--;
-                        } else if (_ftpStatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
+                        }
+                        else if (_ftpStatusCode == FtpStatusCode.ActionNotTakenFileUnavailable)
                         {
                             loopCount = 0;
-                        }                            
+                        }
                     }
-                } while (Status == FTPDownloaderStatus.weberroroccured && loopCount > 0);
-                Status = FTPDownloaderStatus.stopped;
+                } while (Status == NetDownloaderStatus.weberroroccured && loopCount > 0);
+                Status = NetDownloaderStatus.stopped;
             });
         }
     }

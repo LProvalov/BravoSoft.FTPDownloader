@@ -51,19 +51,19 @@ namespace DBDownloader.Engine
                     fs.FileName = df.DestinationFile.Name;
                     switch (df.GetDownloaderStatus())
                     {
-                        case FTPDownloader.FTPDownloaderStatus.inprogress:
+                        case NetFileDownloader.NetDownloaderStatus.inprogress:
                             fs.Status = "In progress...";
                             break;
-                        case FTPDownloader.FTPDownloaderStatus.stopping:
+                        case NetFileDownloader.NetDownloaderStatus.stopping:
                             fs.Status = "Stopping...";
                             break;
-                        case FTPDownloader.FTPDownloaderStatus.stopped:
+                        case NetFileDownloader.NetDownloaderStatus.stopped:
                             fs.Status = "Stopped";
                             break;
-                        case FTPDownloader.FTPDownloaderStatus.erroroccured:
+                        case NetFileDownloader.NetDownloaderStatus.erroroccured:
                             fs.Status = "Error Occured";
                             break;
-                        case FTPDownloader.FTPDownloaderStatus.weberroroccured:
+                        case NetFileDownloader.NetDownloaderStatus.weberroroccured:
                             fs.Status = "Web Error Occured";
                             break;
                     }

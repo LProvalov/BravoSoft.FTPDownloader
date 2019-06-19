@@ -238,9 +238,6 @@ namespace DBDownloader.Net.FTP
         }
 
         private const string TAG = "FTP Client";
-        private bool useSSL = false;
-        private bool keepAlive = false;
-        private bool useBinary = false;
         private bool usePassive = false;
         private int timeout = 0;
         private bool useProxy = false;
@@ -248,12 +245,12 @@ namespace DBDownloader.Net.FTP
         private DownloadingStatus _downloadingStatus;
         private CancellationTokenSource downloadingCancellationToken;
         private const int BUFFER_SIZE = 1024;
-        private const int MULTIPLIER = 1;
+        private const int MULTIPLIER = 512;
         private long _bytesDownloaded;
 
-        public bool UseSSL { get { return useSSL; } set { useSSL = value; } }
-        public bool KeepAlive { get { return keepAlive; } set { keepAlive = value; } }
-        public bool UseBinary { get { return useBinary; } set { useBinary = value; } }
+        public bool UseSSL { get; set; } = false;
+        public bool KeepAlive { get; set; } = true;
+        public bool UseBinary { get; set; } = false;
         public bool UsePassive { get { return usePassive; } set { usePassive = value; } }
         public int Timeout { get { return timeout; } set { if (value > 0) timeout = value; } }
         public string ProxyAddress
@@ -274,9 +271,10 @@ namespace DBDownloader.Net.FTP
             Uri uri = new Uri(string.Format("ftp://{0}{1}", host, path));
             FtpWebRequest webRequest = FtpWebRequest.Create(uri) as FtpWebRequest;
             webRequest.Credentials = new NetworkCredential(username, password);
-            webRequest.KeepAlive = keepAlive;
-            webRequest.EnableSsl = useSSL;
-            webRequest.UseBinary = useBinary;
+            webRequest.KeepAlive = KeepAlive;
+            webRequest.EnableSsl = UseSSL;
+            webRequest.UseBinary = UseBinary;
+            //webRequest.UsePassive = Configuration.Instance.UsePassiveFTP;
             if (timeout > 0) webRequest.Timeout = timeout;
             if (useProxy)
             {
@@ -296,6 +294,7 @@ namespace DBDownloader.Net.FTP
             request.UsePassive = Configuration.Instance.UsePassiveFTP;
             request.Credentials = new NetworkCredential(username, password);
             request.Method = method;
+            request.KeepAlive = KeepAlive;
             return request;
         }
 
@@ -490,41 +489,5 @@ namespace DBDownloader.Net.FTP
             return sourceFileSize;
         }
 
-        /*
-        public void DownloadSourceToDestinationFile(Uri sourceUri, 
-            FileInfo destinationFile, 
-            CancellationTokenSource cancellationToken)
-        {
-            FileStream localFileStream = null;
-            FtpWebRequest request = CreateWebRequest(sourceUri, 
-                WebRequestMethods.Ftp.DownloadFile);
-            request.UseBinary = true;
-            
-            if (destinationFile.Exists)
-            {
-                request.ContentOffset = destinationFile.Length;
-                localFileStream = new FileStream(destinationFile.FullName,
-                    FileMode.Append, FileAccess.Write);
-            }
-            else
-            {
-                localFileStream = new FileStream(destinationFile.FullName,
-                    FileMode.Create, FileAccess.Write);
-            }
-            WebResponse response = request.GetResponse();
-            Stream responseStream = null;
-            using (responseStream = response.GetResponseStream())
-            {
-                byte[] buffer = new byte[BUFFER_SIZE];
-                int bytesRead = responseStream.Read(buffer, 0, BUFFER_SIZE);
-
-                while (bytesRead != 0 && !cancellationToken.IsCancellationRequested)
-                {
-                    localFileStream.Write(buffer, 0, BUFFER_SIZE);
-                    bytesRead = responseStream.Read(buffer, 0, BUFFER_SIZE);
-                }
-            }
-        }
-        */
     }
 }

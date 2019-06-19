@@ -117,7 +117,10 @@
     <Compile Include="NetSettings.xaml.cs">
       <DependentUpon>NetSettings.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Net\FTP\FtpFileDownloader.cs" />
+    <Compile Include="Net\HTTP\HttpFileDownloader.cs" />
     <Compile Include="Net\HTTP\KodupPageParser.cs" />
+    <Compile Include="Net\NetFileDownloader.cs" />
     <Compile Include="Providers\DataProvider.cs" />
     <Compile Include="Engine\DownloaderEngine.cs" />
     <Compile Include="Engine\Events\StatusEntryArgs.cs" />
