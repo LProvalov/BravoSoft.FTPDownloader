@@ -20,12 +20,10 @@
                 <RadioButton x:Name="RBFtpType"
                          Content="FTP протокол"
                          GroupName="NetType"
-                         Checked="RBType_Checked"
                          Margin="5"/>
                 <RadioButton x:Name="RBHttpType"
                          Content="Http протокол"
                          GroupName="NetType"
-                         Checked="RBType_Checked"
                              Margin="5"/>
             </StackPanel>
         </GroupBox>

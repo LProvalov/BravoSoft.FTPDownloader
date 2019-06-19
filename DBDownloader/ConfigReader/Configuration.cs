@@ -259,6 +259,10 @@ namespace DBDownloader.ConfigReader
 
         public short NetClientType
         {
+            set
+            {
+                model.NetClientType = value;
+            }
             get
             {
                 if (!isLoaded) throw new Exception("Configuration does not loading.");
