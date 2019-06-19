@@ -14,7 +14,7 @@ namespace DBDownloader
         
         public object FileName { get; private set; }
 
-        public Settings(String productVersion1Name, String productVersion2Name)
+        public Settings(string productVersion1Name, string productVersion2Name)
         {
             Configuration configuration = Configuration.GetInstance();
             InitializeComponent();
@@ -28,7 +28,10 @@ namespace DBDownloader
             if (configuration.ProductVersion == 0) productVersionRB1.IsChecked = true;
             else productVersionRB2.IsChecked = true;
             */
-            DataContext = new SettingsPageViewModel() { ProductVersionRB1Content = productVersion1Name, ProductVersionRB2Content = productVersion2Name };
+            DataContext = new SettingsPageViewModel() {
+                ProductVersionRB1Content = productVersion1Name,
+                ProductVersionRB2Content = productVersion2Name
+            };
         }
 
         private void saveButton_Click(object sender, RoutedEventArgs e)

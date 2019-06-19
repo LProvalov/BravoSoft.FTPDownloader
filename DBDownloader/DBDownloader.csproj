@@ -114,6 +114,9 @@
     <Compile Include="ConfigReader\FtpConfiguration.cs" />
     <Compile Include="ConfigReader\FtpConfigurationModel.cs" />
     <Compile Include="ConfigReader\ProductVersionModel.cs" />
+    <Compile Include="NetSettings.xaml.cs">
+      <DependentUpon>NetSettings.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Net\HTTP\KodupPageParser.cs" />
     <Compile Include="Providers\DataProvider.cs" />
     <Compile Include="Engine\DownloaderEngine.cs" />
@@ -136,6 +139,7 @@
       <DependentUpon>Scheduler.xaml</DependentUpon>
     </Compile>
     <Compile Include="Services\UserService.cs" />
+    <Compile Include="ViewModel\NetSettingsViewModel.cs" />
     <Compile Include="WinServices\KTServices.cs" />
     <Compile Include="WinServices\ServiceWorker.cs" />
     <Compile Include="Settings.xaml.cs">
@@ -168,6 +172,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="NetSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Scheduler.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

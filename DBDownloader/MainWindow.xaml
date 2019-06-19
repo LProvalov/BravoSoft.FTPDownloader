@@ -9,22 +9,40 @@
         ResizeMode="CanResize" Background="#FFF0F0F0" Icon="computing-cloud.png" Closing="Window_Closing">
     <Grid Name="mainGrid">
         <Grid.RowDefinitions>
-            <RowDefinition Height="45"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
             <RowDefinition x:Name="expanderRow" Height="{Binding EXPANDED_ROW_HEIGHT}"/>
             <RowDefinition x:Name="nntuExpanderRow" Height="{Binding EXPANDED_NNTU_ROW_HEIGHT}"/>
             <RowDefinition Height="250*"/>
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
-        <Button x:Name="startButton" Content="Старт" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="startButton_Click" Grid.Column="0" />
-        <Button x:Name="scheduleButton" Content="Расписание" HorizontalAlignment="Left" Margin="90,10,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="scheduleButton_Click" Grid.Column="0" />
-        <Button x:Name="stopButton" Content="Стоп" HorizontalAlignment="Left" Margin="170,10,0,0" VerticalAlignment="Top" Width="75" Height="23" IsEnabled="False" Click="stopButton_Click" Grid.Column="0"/>
-        <Button x:Name="settingsButton" Content="Настройки" HorizontalAlignment="Right" Margin="0,10,10,10" VerticalAlignment="Top" Width="75" Height="23" Click="settingsButton_Click" Grid.Column="1"/>
-        <Expander Grid.Row="1" x:Name="expander" Header="Консоль Информации" Margin="10,0,10,0" Collapsed="expander_Collapsed" Expanded="expander_Expanded" IsExpanded="True" Background="#FFC8C8C8">
+
+        <Menu Grid.Row="0">
+            <MenuItem Header="Настройки">
+                <MenuItem Name="NetSettingMenuItem" Header="Сеть" Click="NetSettingMenuItem_Click"></MenuItem>
+            </MenuItem>
+        </Menu>
+
+
+        <Grid Grid.Row="1" Margin="10,0,10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="auto"/>
+            </Grid.ColumnDefinitions>
+            <TabPanel  Margin="10" Grid.Column="0">
+                <Button x:Name="startButton" Content="Старт" Width="75" Height="23" IsEnabled="False" Click="startButton_Click"/>
+                <Button x:Name="scheduleButton" Content="Расписание" Width="75" Height="23" IsEnabled="False" Click="scheduleButton_Click" />
+                <Button x:Name="stopButton" Content="Стоп" Width="75" Height="23" IsEnabled="False" Click="stopButton_Click"/>
+            </TabPanel>
+            <Button x:Name="settingsButton" Content="Настройки" Width="75" Height="23" Click="settingsButton_Click" Margin="10" HorizontalAlignment="Right" Grid.Column="1"/>
+        </Grid>
+
+        <Expander Grid.Row="2" x:Name="expander" Header="Консоль Информации" Margin="10,0,10,0" Collapsed="expander_Collapsed" Expanded="expander_Expanded" IsExpanded="True" Background="#FFC8C8C8">
             <Grid>
                 <TextBox x:Name="consoleTextBox" IsReadOnly="True" Margin="0,5,0,0" Padding="10,0,10,0" TextChanged="consoleTextBox_TextChanged" FocusVisualStyle="{x:Null}"/>
             </Grid>
         </Expander>
-        <Expander Grid.Row="2" x:Name="nntlExpander" Header="Не нуждаются в обновлении" Margin="10,5,10,10" IsExpanded="True" Collapsed="nntlExpander_Collapsed" Expanded="nntlExpander_Expanded" Background="#FFC8C8C8">
+        <Expander Grid.Row="3" x:Name="nntlExpander" Header="Не нуждаются в обновлении" Margin="10,5,10,10" IsExpanded="True" Collapsed="nntlExpander_Collapsed" Expanded="nntlExpander_Expanded" Background="#FFC8C8C8">
             <Grid>
                 <Border Margin="0,5,0,0" Background="White" BorderBrush="#FFAAAAAA" BorderThickness="1">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
@@ -50,7 +68,7 @@
                 </Border>
             </Grid>
         </Expander>
-        <Border Grid.Row="3" Margin="10,0,10,0" Background="White" BorderBrush="#FFAAAAAA" BorderThickness="1">
+        <Border Grid.Row="4" Margin="10,0,10,0" Background="White" BorderBrush="#FFAAAAAA" BorderThickness="1">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <ItemsControl x:Name="downloadingList"  Margin="10, 10, 10, 10">
                     <ItemsControl.ItemTemplate>
@@ -78,7 +96,7 @@
                 </ItemsControl>
             </ScrollViewer>
         </Border>
-        <StatusBar x:Name="mainStatusBar" Grid.Row="4" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Bottom" Height="25">
+        <StatusBar x:Name="mainStatusBar" Grid.Row="5" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Bottom" Height="25">
             <TextBlock x:Name="statusTextBlock" Text="Status..."></TextBlock>
         </StatusBar>
 

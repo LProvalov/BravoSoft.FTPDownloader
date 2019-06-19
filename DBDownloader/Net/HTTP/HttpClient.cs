@@ -41,9 +41,6 @@ namespace DBDownloader.Net.HTTP
             return request;
         }
 
-        private readonly string ftp_user = "user1";
-        private readonly string ftp_password = "1q2w3e";
-
         private readonly string http_user = "kodup";
         private readonly string http_password = "update";
 

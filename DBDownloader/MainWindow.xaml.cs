@@ -235,6 +235,16 @@ namespace DBDownloader
             }
         }
 
+        private void netSettingsWindowShow()
+        {
+            IsEnabled = false;
+            NetSettings netSettingsWindow = new NetSettings();
+            netSettingsWindow.Left = Left + Width / 2 - netSettingsWindow.Width / 2;
+            netSettingsWindow.Top = Top + Height / 2 - netSettingsWindow.Height / 2;
+            bool? dialogResult = netSettingsWindow.ShowDialog();
+            IsEnabled = true;
+        }
+
         private void expander_Collapsed(object sender, RoutedEventArgs e)
         {
             this.expanderRow.Height = new GridLength(30);
@@ -330,6 +340,11 @@ namespace DBDownloader
                     while (DownloadEngine.Status != Status.Stopped) Thread.Sleep(500);
                 }
             }
+        }
+
+        private void NetSettingMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            netSettingsWindowShow();
         }
     }
 }
