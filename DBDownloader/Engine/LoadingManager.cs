@@ -95,7 +95,7 @@ namespace DBDownloader.Engine
                 Configuration configuration = Configuration.Instance;
                 FileInfo destinationFileInfo = destinationFile;
                 Uri sourceFileUri = new Uri(sourceFileUrl);
-                DownloadFile df = new DownloadFile(/*networkCredential,*/
+                DownloadFile df = new DownloadFile(
                     FtpClient.CreateClient(),
                     destinationFileInfo, sourceFileUri,
                     configuration.UseProxy, configuration.ProxyAddress, configuration.UsePassiveFTP,

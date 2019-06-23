@@ -125,7 +125,7 @@
     <Compile Include="Engine\DownloaderEngine.cs" />
     <Compile Include="Engine\Events\StatusEntryArgs.cs" />
     <Compile Include="Engine\Events\StringEntryEventArgs.cs" />
-    <Compile Include="Net\DownloadFile.cs" />
+    <Compile Include="Engine\DownloadFile.cs" />
     <Compile Include="Net\FTP\FtpClient.cs" />
     <Compile Include="Net\FTP\FTPDownloader.cs" />
     <Compile Include="Net\FTP\FtpFileInfo.cs" />

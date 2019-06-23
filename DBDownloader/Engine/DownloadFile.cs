@@ -4,10 +4,11 @@ using System.Net;
 using System.Threading.Tasks;
 using DBDownloader.ConfigReader;
 using DBDownloader.MainLogger;
+using DBDownloader.Net;
 using DBDownloader.Net.FTP;
 using DBDownloader.Net.HTTP;
 
-namespace DBDownloader.Net
+namespace DBDownloader.Engine
 {
     public class DownloadFile
     {
