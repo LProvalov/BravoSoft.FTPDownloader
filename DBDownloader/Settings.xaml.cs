@@ -34,14 +34,37 @@ namespace DBDownloader
             };
         }
 
+        private DirectoryInfo CreateIfNotExists(string path)
+        {
+            DirectoryInfo di = new DirectoryInfo(path);
+            if (!di.Exists)
+            {
+                di.Create();
+            }
+            return di;
+        }
+
         private void saveButton_Click(object sender, RoutedEventArgs e)
         {
             Configuration configuration = Configuration.GetInstance();
             configuration.IsTechnicalRegulationReform = trrCheckBox.IsChecked.Value;
-            /*
-            if (productVersionRB1.IsChecked.Value) configuration.ProductVersion = 0;
-            else configuration.ProductVersion = 1;
-            */
+
+            try
+            {
+                if (!string.IsNullOrEmpty(oprationalUpdateTextBox.Text))
+                {
+                    configuration.OperationalUpdateDirectory = CreateIfNotExists(oprationalUpdateTextBox.Text);
+                }
+                if (!string.IsNullOrEmpty(dbdirectoryTextBox.Text))
+                {
+                    configuration.DBDirectory = CreateIfNotExists(dbdirectoryTextBox.Text);
+                }
+            } catch (IOException ioEx)
+            {
+                MessageBox.Show("Can't save settings because operup or db can't be create.");
+                return;
+            }
+
             if (ValidateModel(configuration))
             {
                 configuration.SaveConfiguration();
@@ -69,7 +92,7 @@ namespace DBDownloader
             bool? dialogResult = openFileDialog.ShowDialog();
             if (dialogResult.HasValue && dialogResult.Value == true)
             {
-                Configuration.GetInstance().RegFileInfo = new FileInfo(openFileDialog.FileName);
+                //Configuration.GetInstance().RegFileInfo = new FileInfo(openFileDialog.FileName);
                 this.regFilePathTextBox.Text = openFileDialog.FileName;
             }
         }
@@ -81,7 +104,7 @@ namespace DBDownloader
             System.Windows.Forms.DialogResult result = folderDialog.ShowDialog(this.GetIWin32Window());
             if (result == System.Windows.Forms.DialogResult.OK)
             {
-                Configuration.GetInstance().OperationalUpdateDirectory = new DirectoryInfo(folderDialog.SelectedPath);
+                //Configuration.GetInstance().OperationalUpdateDirectory = new DirectoryInfo(folderDialog.SelectedPath);
                 this.oprationalUpdateTextBox.Text = folderDialog.SelectedPath;
             }
         }
@@ -102,7 +125,7 @@ namespace DBDownloader
             System.Windows.Forms.DialogResult result = folderDialog.ShowDialog(this.GetIWin32Window());
             if (result == System.Windows.Forms.DialogResult.OK)
             {
-                Configuration.GetInstance().DBDirectory = new DirectoryInfo(folderDialog.SelectedPath);
+                //Configuration.GetInstance().DBDirectory = new DirectoryInfo(folderDialog.SelectedPath);
                 this.dbdirectoryTextBox.Text = folderDialog.SelectedPath;
             }
         }

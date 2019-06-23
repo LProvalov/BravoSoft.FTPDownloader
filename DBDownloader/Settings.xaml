@@ -32,7 +32,7 @@
                     <ColumnDefinition Width="100*"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" x:Name="oprationalUpdateTextBox" Height="23" Margin="10,10,10,0" 
-                         TextWrapping="Wrap" VerticalAlignment="Top" IsReadOnly="True"/>
+                         TextWrapping="Wrap" VerticalAlignment="Top" />
                 <Button Grid.Column="1" x:Name="operationalUpdateBrowseButton" Content="Обзор..." Margin="10,10,10,0"
                         Height="23" VerticalAlignment="Top" Click="operationalUpdateBrowseButton_Click"/>
             </Grid>
@@ -44,7 +44,7 @@
                     <ColumnDefinition Width="100*"/>
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" x:Name="dbdirectoryTextBox" Height="23" Margin="10,10,10,0"
-                         TextWrapping="Wrap" VerticalAlignment="Top" IsReadOnly="True"/>
+                         TextWrapping="Wrap" VerticalAlignment="Top" />
                 <Button Grid.Column="1" x:Name="dbdirectoryBrowseButton" Content="Обзор..." Margin="10,10,10,0"
                         Height="23" VerticalAlignment="Top" Click="dbdirectoryBrowseButton_Click"/>
             </Grid>
