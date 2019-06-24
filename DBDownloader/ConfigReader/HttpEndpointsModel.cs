@@ -11,5 +11,6 @@ namespace DBDownloader.ConfigReader
         public string BaseIp { get; set; }
         public string Login { get; set; }
         public string DBList { get; set; }
+        public string Xml { get; set; }
     }
 }

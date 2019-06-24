@@ -12,6 +12,12 @@ namespace DBDownloader.Net.HTTP
 {
     public class HttpClient : INetClient
     {
+        public static HttpClient CreateClient()
+        {
+            HttpClient httpClient = new HttpClient();
+            return httpClient;
+        }
+
         public IEnumerable<FileStruct> FillCreateDateTime(string path, FileStruct[] filestructs)
         {
             throw new NotImplementedException();
@@ -22,9 +28,10 @@ namespace DBDownloader.Net.HTTP
             throw new NotImplementedException();
         }
 
+        [Obsolete("Use GetListKodup instead")]
         public FileStruct[] ListDirectory(string path)
         {
-            throw new NotImplementedException();
+            return GetListKodup();
         }
 
         private HttpWebRequest CreateWebRequest(Uri uri, string method)
@@ -48,9 +55,9 @@ namespace DBDownloader.Net.HTTP
         private readonly string proxy_address = "";
 
         private readonly string db_list = string.Format("/{0}", 
-            FtpConfiguration.Instance.HttpEndpoints.DBList); //"/kodup";
+            FtpConfiguration.Instance.HttpEndpoints.DBList);
         private readonly string login_endpoint = string.Format("/{0}", 
-            FtpConfiguration.Instance.HttpEndpoints.Login); //"/users/login.asp";
+            FtpConfiguration.Instance.HttpEndpoints.Login);
 
         private readonly string server_ip = FtpConfiguration.Instance.HttpEndpoints.BaseIp; //"82.208.93.53";
 
@@ -140,8 +147,16 @@ namespace DBDownloader.Net.HTTP
             return true;
         }
 
+        private void CheckAndUpdateAuth(string ret_path) {
+            if (authCookie == null || authCookie.Expired)
+            {
+                GetAuthCookie(ret_path);
+            }
+        }
+
         public Task DownloadFileAsync(Uri sourceFile, FileInfo destinationFileInfo)
         {
+            CheckAndUpdateAuth(sourceFile.LocalPath);
             return Task.Factory.StartNew(() =>
             {
                 int loopCount = RepeatCount;
@@ -175,6 +190,9 @@ namespace DBDownloader.Net.HTTP
 
         public FileStruct[] GetListKodup()
         {
+
+            CheckAndUpdateAuth(db_list);
+
             FileStruct[] fileStructs = null;
 
             Uri uri = new Uri(string.Format("http://{0}{1}", server_ip, db_list));
@@ -203,7 +221,7 @@ namespace DBDownloader.Net.HTTP
             {
                 Console.WriteLine(wEx.Message);
                 HttpWebResponse response = (HttpWebResponse)wEx.Response;
-                if (response.StatusCode == HttpStatusCode.Forbidden)
+                if (response != null && response.StatusCode == HttpStatusCode.Forbidden)
                 {
                     Console.WriteLine("Forbidden! Wrong user/password pair.");
                 }

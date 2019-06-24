@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +14,6 @@ using DBDownloader.XML.Models.Autocomplects;
 using DBDownloader.XML.Models.Products;
 using DBDownloader.MainLogger;
 using DBDownloader.WinServices;
-using System.Text;
 using DBDownloader.Engine.Events;
 using DBDownloader.LOG;
 using DBDownloader.Providers;
@@ -70,7 +70,6 @@ namespace DBDownloader.Engine
         private string reportUri;
         private readonly string REPORT_PATH = "report.txt";
 
-        private readonly string AUTOCOMPLECTS_FILENAME_TEMPLATE = "AutoComplects_{0}.xml";
         private readonly string CONFIG_FILE_STORAGE =
             string.Format(@"{0}", Directory.GetCurrentDirectory());
 
@@ -94,24 +93,22 @@ namespace DBDownloader.Engine
         private IList<Tom> GetListOfToms()
         {
             Log.WriteInfo("DownloaderManager GetListOfToms");
-            FtpFilesProvider ftpFilesProvider =
-                useProxy ?
-                new FtpFilesProvider(networkCredential, useProxy, Configuration.GetInstance().UsePassiveFTP, proxyAddress) :
-                new FtpFilesProvider(networkCredential, usePassiveFTP: Configuration.Instance.UsePassiveFTP);
+            NetFilesProvider netFilesProvider = new NetFilesProvider();
 
-            string autocomplectsFileName =
-                string.Format(AUTOCOMPLECTS_FILENAME_TEMPLATE, regFileSearch.DistributorCode);
+            //string autocomplectsFileName =
+            //    string.Format(AUTOCOMPLECTS_FILENAME_TEMPLATE, regFileSearch.DistributorCode);
 
             Messenger.Instance.Write("autocomplect file downloading...", Messenger.Type.ApplicationBroadcast);
             FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
-
-            FileInfo autoComplectFileInfo = ftpFilesProvider.GetFile(
-                string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, autocomplectsFileName),
-                string.Format(@"{0}/{1}", ftpConfiguration.AutocomplectsPath, autocomplectsFileName));
+            
+            FileInfo autoComplectFileInfo = netFilesProvider.GetFile(
+                string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, FilesPathProvider.AutocomplectsFileName),
+                FilesPathProvider.GetAutoComplectFileInfo());
+                //string.Format(@"{0}/{1}", ftpConfiguration.AutocomplectsPath, FilesPathProvider.AutocomplectsFileName));
 
             Messenger.Instance.Write("Product files downloading...", Messenger.Type.ApplicationBroadcast);
             IEnumerable<FileInfo> productFiles =
-                ftpFilesProvider.GetProductsFiles(CONFIG_FILE_STORAGE, ftpConfiguration);
+                netFilesProvider.GetProductsFiles(CONFIG_FILE_STORAGE, ftpConfiguration);
 
             FileInfo[] autoComplectsFiles = new FileInfo[] { autoComplectFileInfo };
             Messenger.Instance.Write("Autocomplect file parsing...", Messenger.Type.ApplicationBroadcast);
@@ -143,8 +140,6 @@ namespace DBDownloader.Engine
             regFileSearch = new RegFileSearch(Configuration.Instance.RegFileInfo);
 
             FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
-            networkCredential =
-               new NetworkCredential(ftpConfiguration.User, ftpConfiguration.Password);
 
             reportUri = string.Format(@"{0}//{1}/{2}",
                 ftpConfiguration.FtpSourcePath, ftpConfiguration.ReportsPath, regFileSearch.ClientCode);
@@ -152,13 +147,14 @@ namespace DBDownloader.Engine
             ReportWriter.AppendString("Клиент ID - {0}. {1}.\n", regFileSearch.ClientCode, DateTime.Now.ToLongTimeString());
 
             Messenger.Instance.Write("Loading manager initialization...", Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
-            loadingManager = new LoadingManager(networkCredential, new Uri(reportsDir));
+            loadingManager = new LoadingManager(new Uri(reportsDir));
             loadingManager.ErrorOccurred += LoadingManager_ErrorOccurred;
 
             Log.WriteTrace("Initialize - ftp worker");
 
-            string dbUriStr = string.Format(@"{0}//{1}",
-                ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
+            //string dbUriStr = string.Format(@"{0}//{1}",
+            //  ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
+            string dbUriStr = FilesPathProvider.GetDBPath();
             Dictionary<string, NetFileInfo> sizeDBDictionary = dataProvider.GetDBListWithSize(new Uri(dbUriStr));
             if (sizeDBDictionary.Count == 0) throw new Exception(
                 string.Format("Can't get information about db files in current Url: {0}", dbUriStr));
@@ -269,7 +265,7 @@ namespace DBDownloader.Engine
         {
             if (DelayedStart > DateTime.Now)
             {
-                Status = DBDownloader.Engine.Status.StartWaiting;
+                Status = Status.StartWaiting;
                 TimeSpan waitingTime = DelayedStart - DateTime.Now;
                 using (waitingStartCts = new CancellationTokenSource())
                 {
@@ -364,19 +360,6 @@ namespace DBDownloader.Engine
                         if (file.Exists) file.Delete();
                     }
 
-                    //FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
-                    //string ftphost = ftpConfiguration.FtpSourcePath;
-                    //ftphost = ftphost.Remove(0, "ftp://".Length);
-                    //Log.WriteTrace("CleanOperUp - Host: {0}", ftphost);
-                    //FtpClient ftpClient = new FtpClient(ftphost, ftpConfiguration.User, ftpConfiguration.Password);
-                    //ftpClient.UseBinary = true;
-                    //if (useProxy)
-                    //{
-                    //    ftpClient.ProxyAddress = proxyAddress;
-                    //}
-                    //ftpClient.UseBinary = false;
-                    //Log.WriteTrace("CleanOperUp - Get list directory: {0}", ftpConfiguration.ClearFolder);
-                    //ftpClient.ListDirectory(ftpConfiguration.ClearFolder)
                     FileStruct[] listDirectory = dataProvider.ListDirectory(FtpConfiguration.Instance.ClearFolder);
                     foreach (var item in listDirectory)
                     {

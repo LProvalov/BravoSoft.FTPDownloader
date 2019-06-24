@@ -1,33 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 
 using DBDownloader.ConfigReader;
+using DBDownloader.Net;
 using DBDownloader.Net.FTP;
+using DBDownloader.Net.HTTP;
+using DBDownloader.Providers;
+using static DBDownloader.Net.NetFileDownloader;
 
 namespace DBDownloader.XML
 {
     // Provide *.xml files from ftp server. 
     // Can store files in temp directory on local computer.
-    public class FtpFilesProvider
+    public class NetFilesProvider
     {
-        private NetworkCredential credential;
-        private bool useProxy;
-        private string proxyAddress;
-        private bool usePassiveFtp;
+        private INetClient netClient;
 
-        public FtpFilesProvider(string user, string password, bool useProxy = false, bool usePassiveFTP = true, string proxyAddress = "")
-            : this(credential: new NetworkCredential(user, password), useProxy: useProxy, proxyAddress: proxyAddress, usePassiveFTP: usePassiveFTP)
+        public NetFilesProvider()
         {
-        }
-
-        public FtpFilesProvider(NetworkCredential credential, bool useProxy = false, bool usePassiveFTP = true, string proxyAddress = "")
-        {
-            this.credential = credential;
-            this.useProxy = useProxy;
-            this.proxyAddress = proxyAddress;
-            this.usePassiveFtp = usePassiveFTP;
+            if (Configuration.Instance.NetClientType == NetClientTypes.FTP) netClient = FtpClient.CreateClient();
+            else netClient = HttpClient.CreateClient();
         }
 
         public FileInfo GetFile(string destinationFilePath, string sourcePath)
@@ -38,9 +31,9 @@ namespace DBDownloader.XML
                 destinationFile.Refresh();
             }
             Uri sourceUri = new Uri(sourcePath);
-            FTPDownloader downloader =
-                new FTPDownloader(FtpClient.CreateClient(), destinationFile, sourceUri);
-            downloader.BeginAsync().Wait();
+            NetFileDownloader fileDownloader = NetFileDownloader.CreateFileDownloader(
+                netClient, destinationFile, sourceUri);
+            fileDownloader.BeginAsync().Wait();
             destinationFile.Refresh();
             if (destinationFile.Exists) return destinationFile;
             else throw new Exception("Can't download file.");
@@ -57,7 +50,7 @@ namespace DBDownloader.XML
                 FileInfo destinationFile = new FileInfo(productFilePath);
 
                 string sourceFilePath = string.Format(@"{0}/{1}",
-                    configReader.ProductsPath, productModelItem.ProductFileName);
+                    FilesPathProvider.GetProductFilesDirPath(), productModelItem.ProductFileName);
                 Uri sourceUri = new Uri(sourceFilePath);
 
                 if (destinationFile.Exists)
@@ -65,10 +58,10 @@ namespace DBDownloader.XML
                     destinationFile.Delete();
                     destinationFile.Refresh();
                 }
-                FTPDownloader downloader =
-                    new FTPDownloader(FtpClient.CreateClient(), destinationFile, sourceUri);
-                
-                downloader.BeginAsync().Wait();
+                NetFileDownloader fileDownloader = NetFileDownloader.CreateFileDownloader(
+                    netClient, destinationFile, sourceUri);
+
+                fileDownloader.BeginAsync().Wait();
                 destinationFile.Refresh();
                 if (destinationFile.Exists) productFiles.Add(destinationFile);
             }

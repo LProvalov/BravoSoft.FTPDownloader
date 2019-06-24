@@ -46,9 +46,9 @@ namespace DBDownloader.Engine
                 destinationFile.DirectoryName, fileName, destinationFile.Extension));
             SourceFileUri = sourceFileUri;
             IsUpdateNeeded = isUpdateNeeded;
-            if (Configuration.Instance.NetClientType == 2)
+            if (Configuration.Instance.NetClientType == NetFileDownloader.NetClientTypes.HTTP)
             {
-                downloader = new HttpFileDownloader(destinationFileCopy, sourceFileUri, sourceSize);
+                downloader = new HttpFileDownloader(netClient as HttpClient, destinationFileCopy, sourceFileUri, sourceSize);
             } else
             {
                 downloader = new FtpFileDownloader(netClient as FtpClient, destinationFileCopy, sourceFileUri, sourceSize);

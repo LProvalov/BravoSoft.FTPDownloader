@@ -140,6 +140,7 @@
     <Compile Include="Net\HTTP\HttpClient.cs" />
     <Compile Include="Net\INetClient.cs" />
     <Compile Include="Net\NetFileInfo.cs" />
+    <Compile Include="Providers\FilesPathProvider.cs" />
     <Compile Include="ReportWriter.cs" />
     <Compile Include="Scheduler.xaml.cs">
       <DependentUpon>Scheduler.xaml</DependentUpon>
@@ -154,7 +155,7 @@
     <Compile Include="ViewModel\SettingsPageViewModel.cs" />
     <Compile Include="WpfExtensions.cs" />
     <Compile Include="XML\AutoComplectsParser.cs" />
-    <Compile Include="XML\FtpFilesProvider.cs" />
+    <Compile Include="Providers\NetFilesProvider.cs" />
     <Compile Include="XML\Models\Autocomplects\AutoComplect.cs" />
     <Compile Include="XML\Models\Autocomplects\AutoComplectList.cs" />
     <Compile Include="XML\Models\BaseAttribute.cs" />

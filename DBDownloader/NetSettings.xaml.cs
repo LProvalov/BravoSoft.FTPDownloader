@@ -24,10 +24,10 @@ namespace DBDownloader
             InitializeComponent();
             switch(Configuration.Instance.NetClientType)
             {
-                case 1: // Ftp
+                case Net.NetFileDownloader.NetClientTypes.FTP:
                     RBFtpType.IsChecked = true;
                     break;
-                case 2: // Http
+                case Net.NetFileDownloader.NetClientTypes.HTTP:
                     RBHttpType.IsChecked = true;
                     break;
                 default:
@@ -39,9 +39,9 @@ namespace DBDownloader
         private void BtnSave_Click(object sender, RoutedEventArgs e)
         {
             Configuration configuration = Configuration.Instance;
-            configuration.NetClientType = 1; //default value is FTP
-            if (RBFtpType.IsChecked.HasValue && RBFtpType.IsChecked.Value) configuration.NetClientType = 1;
-            if (RBHttpType.IsChecked.HasValue && RBHttpType.IsChecked.Value) configuration.NetClientType = 2;
+            configuration.NetClientType = Net.NetFileDownloader.NetClientTypes.FTP; //default value is FTP
+            if (RBFtpType.IsChecked.HasValue && RBFtpType.IsChecked.Value) configuration.NetClientType = Net.NetFileDownloader.NetClientTypes.FTP;
+            if (RBHttpType.IsChecked.HasValue && RBHttpType.IsChecked.Value) configuration.NetClientType = Net.NetFileDownloader.NetClientTypes.HTTP;
             configuration.SaveConfiguration();
             DialogResult = true;
             Close();

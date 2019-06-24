@@ -1,14 +1,13 @@
-﻿using DBDownloader.MainLogger;
+﻿using DBDownloader.ConfigReader;
+using DBDownloader.MainLogger;
 using DBDownloader.Net;
 using DBDownloader.Net.FTP;
 using DBDownloader.Net.HTTP;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
-using static DBDownloader.Engine.LoadingManager;
+using static DBDownloader.Net.NetFileDownloader;
 
 namespace DBDownloader.Providers
 {
@@ -19,7 +18,9 @@ namespace DBDownloader.Providers
 
         public DataProvider()
         {
-            netClient = FtpClient.CreateClient();
+            if (Configuration.Instance.NetClientType == NetClientTypes.FTP)
+                netClient = FtpClient.CreateClient();
+            else netClient = HttpClient.CreateClient();
         }
 
         public Dictionary<string, NetFileInfo> GetDBListWithSize(Uri dbDirUri)

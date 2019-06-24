@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using DBDownloader.Net.FTP;
+using DBDownloader.Net.HTTP;
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -18,12 +17,26 @@ namespace DBDownloader.Net
             erroroccured,
             weberroroccured
         }
+        public enum NetClientTypes
+        {
+            FTP = 0,
+            HTTP = 1
+        }
 
         public class NetFileDownloaderException : Exception
         {
             public NetFileDownloaderException(string message) : base(message)
             {
             }
+        }
+
+        public static NetFileDownloader CreateFileDownloader(INetClient netClient, FileInfo destinationFile, Uri sourceUri, long sourceSize = 0)
+        {
+            if (netClient is FtpClient)
+                return new FtpFileDownloader(netClient as FtpClient, destinationFile, sourceUri, sourceSize);
+            if (netClient is HttpClient)
+                return new HttpFileDownloader(netClient as HttpClient, destinationFile, sourceUri, sourceSize);
+            throw new ArgumentException("Unknown net client type");
         }
 
         protected Uri sourceUri;

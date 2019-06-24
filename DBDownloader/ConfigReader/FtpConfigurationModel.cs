@@ -18,6 +18,8 @@ namespace DBDownloader.ConfigReader
         public string Password { get; set; }
         public string ClearFolder { get; set; }
         public string SysInfoFtpPath { get; set; }
+        public string SysInfoAddrService { get; set; }
+        public string SysInfoReportUrl { get; set; }
         [XmlElement("HttpConfiguration")]
         public HttpConfiguration HttpConfiguration { get; set; }
     }

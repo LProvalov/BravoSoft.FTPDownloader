@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <FtpConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <FtpSourcePath> ftp://82.208.93.53</FtpSourcePath>
+  <FtpSourcePath>ftp://82.208.93.53</FtpSourcePath>
   <DBPath>base</DBPath>
   <AutocomplectsPath>xml</AutocomplectsPath>
   <ProductsPath>xml</ProductsPath>
@@ -13,6 +13,8 @@
   <User>user1</User>
   <Password>1q2w3e</Password>
   <ClearFolder>operup/new</ClearFolder>
+  <SysInfoAddrService>http://apple:8080</SysInfoAddrService>
+  <SysInfoReportUrl>/sysinfo/si_save_request?blocks=(about)(data_bases)(products)(licenses)(operupdates)(speedtest)(statistic)(survey)(system)</SysInfoReportUrl>
   <SysInfoFtpPath></SysInfoFtpPath>
   <HttpConfiguration>
     <User>kodup</User>
@@ -21,6 +23,7 @@
       <BaseIp>82.208.93.53</BaseIp>
       <Login>users/login.asp</Login>
       <DBList>kodup</DBList>
+      <Xml>xml</Xml>
     </HttpEndpoints>
   </HttpConfiguration>
 </FtpConfigurationModel>

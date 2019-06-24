@@ -9,10 +9,11 @@ namespace DBDownloader.Net.HTTP
 {
     public sealed class HttpFileDownloader : NetFileDownloader
     {
-        public HttpFileDownloader(FileInfo destinationFileInfo, Uri sourceUri, 
-            long sourceSize) : base(destinationFileInfo, sourceUri, sourceSize)
+        private HttpClient httpClient;
+        public HttpFileDownloader(HttpClient httpClient, FileInfo destinationFileInfo, Uri sourceUri, 
+            long sourceSize = 0) : base(destinationFileInfo, sourceUri, sourceSize)
         {
-
+            this.httpClient = httpClient;
         }
 
         protected override Task DownloadFileAsync(Uri sourceUri, FileInfo destinationFile)

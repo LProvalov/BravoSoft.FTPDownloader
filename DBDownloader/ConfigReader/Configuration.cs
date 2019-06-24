@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Serialization;
+using static DBDownloader.Net.NetFileDownloader;
 
 namespace DBDownloader.ConfigReader
 {
@@ -257,16 +258,33 @@ namespace DBDownloader.ConfigReader
             }
         }
 
-        public short NetClientType
+
+
+        public NetClientTypes NetClientType
         {
             set
             {
-                model.NetClientType = value;
+                switch(value)
+                {
+                    case NetClientTypes.FTP:
+                        model.NetClientType = (short)NetClientTypes.FTP;
+                        break;
+                    case NetClientTypes.HTTP:
+                        model.NetClientType = (short)NetClientTypes.HTTP;
+                        break;
+                }
             }
             get
             {
                 if (!isLoaded) throw new Exception("Configuration does not loading.");
-                return model.NetClientType;
+                switch (model.NetClientType)
+                {
+                    case 0:
+                        return NetClientTypes.FTP;
+                    case 1:
+                        return NetClientTypes.HTTP;
+                }
+                return NetClientTypes.FTP;
             }
         }
     }

@@ -15,7 +15,6 @@ namespace DBDownloader.Engine
 {
     public class LoadingManager
     {
-        private NetworkCredential networkCredential;
         private Dictionary<string, DownloadFile> downloadFileDictionary =
             new Dictionary<string, DownloadFile>();
 
@@ -30,9 +29,8 @@ namespace DBDownloader.Engine
         public event EventHandler DownloadingStopped;
         public event ErrorEventHandler ErrorOccurred;
         
-        public LoadingManager(NetworkCredential networkCredential, Uri reportDirUrl)
+        public LoadingManager(Uri reportDirUrl)
         {
-            this.networkCredential = networkCredential;
             this.reportDirUrl = reportDirUrl;
             dataProvider = new DataProvider();
         }

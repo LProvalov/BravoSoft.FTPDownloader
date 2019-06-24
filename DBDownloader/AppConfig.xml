@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ConfigurationModel xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <RegFile>D:\Projects\KodUp\746_314267.reg</RegFile>
-  <OperationalUpdateDirectory>D:\Projects\KodUp\OperUp</OperationalUpdateDirectory>
-  <DBDirectory>D:\Projects\KodUp\DBFiles</DBDirectory>
+  <RegFile>E:\Projects\KodUp\746_314267.reg</RegFile>
+  <OperationalUpdateDirectory>E:\Projects\KodUp\OperUp</OperationalUpdateDirectory>
+  <DBDirectory>E:\Projects\KodUp\DBFiles</DBDirectory>
   <IsTechnicalRegulationReform>false</IsTechnicalRegulationReform>
   <ConnectionInitFile>FtpConfiguration.dat</ConnectionInitFile>
   <UseProxy>false</UseProxy>

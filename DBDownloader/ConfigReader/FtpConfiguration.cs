@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Crypt;
+using System;
 using System.Collections.Generic;
-using System.Text;
 using System.IO;
+using System.Text;
 using System.Xml.Serialization;
-using Crypt;
 
 namespace DBDownloader.ConfigReader
 {
@@ -17,7 +17,7 @@ namespace DBDownloader.ConfigReader
         private static FtpConfiguration _instance = null;
         public static FtpConfiguration GetInstance()
         {
-            if(_instance == null)
+            if (_instance == null)
             {
                 _instance = new FtpConfiguration();
             }
@@ -32,7 +32,10 @@ namespace DBDownloader.ConfigReader
         {
             FileInfo configFile = new FileInfo(
                 string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, Configuration.GetInstance().ConnectionInitFile));
-            if (!configFile.Exists) throw new Exception("Config file does not found.");
+            if (!configFile.Exists)
+            {
+                throw new Exception("Config file does not found.");
+            }
 
             model = new FtpConfigurationModel();
             XmlSerializer serializer = new XmlSerializer(typeof(FtpConfigurationModel));
@@ -56,7 +59,10 @@ namespace DBDownloader.ConfigReader
             }
             finally
             {
-                if (streamReader != null) streamReader.Close();
+                if (streamReader != null)
+                {
+                    streamReader.Close();
+                }
             }
         }
 
@@ -85,5 +91,7 @@ namespace DBDownloader.ConfigReader
         public string HttpUser { get { return model.HttpConfiguration.User; } }
         public string HttpPassword { get { return model.HttpConfiguration.Password; } }
         public string SysInfoFtpPath { get { return model.SysInfoFtpPath; } }
+        public string SysInfoAddrService { get { return model.SysInfoAddrService; } }
+        public string SysInfoReportUrl { get { return model.SysInfoReportUrl; } }
     }
 }

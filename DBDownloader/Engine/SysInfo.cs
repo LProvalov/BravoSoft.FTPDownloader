@@ -1,4 +1,5 @@
 ﻿using DBDownloader.ConfigReader;
+using DBDownloader.MainLogger;
 using DBDownloader.Net.FTP;
 using DBDownloader.Net.HTTP;
 using System;
@@ -12,8 +13,11 @@ namespace DBDownloader.Engine
 {
     public class SysInfo
     {
+        private static string TAG = "SysInfo";
         private static HttpClient httpClient = new HttpClient();
-        private static Uri localSysInfoUri = new Uri(" http://apple:3000/sysinfo/si_save_request");
+        private static Uri localSysInfoUri = new Uri(string.Format("{0}{1}", 
+            FtpConfiguration.Instance.SysInfoAddrService, 
+            FtpConfiguration.Instance.SysInfoReportUrl));
         public static void SendSysInfoToFtp()
         {
             if (string.IsNullOrEmpty(FtpConfiguration.Instance.SysInfoFtpPath)) return;
@@ -26,6 +30,7 @@ namespace DBDownloader.Engine
             Stream sysInfoStream = null;
             try
             {
+                Log.WriteTraceF(TAG, "LocalSysInfoUrl: {0}", localSysInfoUri);
                 sysInfoRequest = httpClient.GetHttpWebResponse(localSysInfoUri, WebRequestMethods.Http.Get);
                 sysInfoStream = sysInfoRequest.GetResponseStream();
                 Uri reportDestinationUri = new Uri(FtpConfiguration.Instance.SysInfoFtpPath);
