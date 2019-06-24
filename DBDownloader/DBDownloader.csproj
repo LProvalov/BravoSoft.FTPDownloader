@@ -113,7 +113,10 @@
     <Compile Include="ConfigReader\ConfigurationModel.cs" />
     <Compile Include="ConfigReader\FtpConfiguration.cs" />
     <Compile Include="ConfigReader\FtpConfigurationModel.cs" />
+    <Compile Include="ConfigReader\HttpConfiguration.cs" />
+    <Compile Include="ConfigReader\HttpEndpointsModel.cs" />
     <Compile Include="ConfigReader\ProductVersionModel.cs" />
+    <Compile Include="Engine\SysInfo.cs" />
     <Compile Include="NetSettings.xaml.cs">
       <DependentUpon>NetSettings.xaml</DependentUpon>
     </Compile>
