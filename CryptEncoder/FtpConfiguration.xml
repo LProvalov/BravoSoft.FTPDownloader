@@ -4,11 +4,6 @@
   <DBPath>base</DBPath>
   <AutocomplectsPath>xml</AutocomplectsPath>
   <ProductsPath>xml</ProductsPath>
-  <!--ProductModelItems>
-    <ProductFileName>Products_6.4.0_old.xml</ProductFileName>
-    <ProductFileNameUI>Products v6.4.0 OLD</ProductFileNameUI>
-    <ProductBasePath>base</ProductBasePath>
-  </ProductModelItems-->
   <ProductModelItems>
     <ProductFileName>Products_6.4.0.xml</ProductFileName>
     <ProductFileNameUI>Products v6.4.0</ProductFileNameUI>
@@ -18,4 +13,14 @@
   <User>user1</User>
   <Password>1q2w3e</Password>
   <ClearFolder>operup/new</ClearFolder>
+  <SysInfoFtpPath></SysInfoFtpPath>
+  <HttpConfiguration>
+    <User>kodup</User>
+    <Password>update</Password>
+    <HttpEndpoints>
+      <BaseIp>82.208.93.53</BaseIp>
+      <Login>users/login.asp</Login>
+      <DBList>kodup</DBList>
+    </HttpEndpoints>
+  </HttpConfiguration>
 </FtpConfigurationModel>

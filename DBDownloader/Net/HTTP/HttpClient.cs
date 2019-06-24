@@ -41,18 +41,20 @@ namespace DBDownloader.Net.HTTP
             return request;
         }
 
-        private readonly string http_user = "kodup";
-        private readonly string http_password = "update";
+        private readonly string http_user = FtpConfiguration.Instance.HttpUser; // "kodup";
+        private readonly string http_password = FtpConfiguration.Instance.HttpPassword; // "update";
 
         private readonly bool proxy_use = false;
         private readonly string proxy_address = "";
 
-        private readonly string kodup_endpoint = "/kodup";
-        private readonly string login_endpoint = "/users/login.asp";
+        private readonly string db_list = string.Format("/{0}", 
+            FtpConfiguration.Instance.HttpEndpoints.DBList); //"/kodup";
+        private readonly string login_endpoint = string.Format("/{0}", 
+            FtpConfiguration.Instance.HttpEndpoints.Login); //"/users/login.asp";
 
-        private readonly string server_ip = "82.208.93.53";
+        private readonly string server_ip = FtpConfiguration.Instance.HttpEndpoints.BaseIp; //"82.208.93.53";
 
-        private readonly int BYTE_BUFFER_SIZE = 1000 * 1000; // 1 mb
+        private readonly int BYTE_BUFFER_SIZE = 1024 * 512; // 1/2 mb
         private long bytesDownloaded;
 
         private CancellationTokenSource loopCancellationTokenSource = null;
@@ -175,7 +177,7 @@ namespace DBDownloader.Net.HTTP
         {
             FileStruct[] fileStructs = null;
 
-            Uri uri = new Uri(string.Format("http://{0}{1}", server_ip, kodup_endpoint));
+            Uri uri = new Uri(string.Format("http://{0}{1}", server_ip, db_list));
             var request = CreateHttpRequest(uri, WebRequestMethods.Http.Get);
 
             try
@@ -260,6 +262,11 @@ namespace DBDownloader.Net.HTTP
                 Console.WriteLine(wEx.Message);
                 authCookie = null;
             }
+        }
+
+        public HttpWebResponse GetHttpWebResponse(Uri uri, string httpMethod)
+        {
+            throw new NotImplementedException();
         }
 
     }

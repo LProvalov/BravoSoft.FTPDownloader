@@ -11,12 +11,14 @@ namespace DBDownloader.ConfigReader
         public string DBPath { get; set; }
         public string AutocomplectsPath { get; set; }
         public string ProductsPath { get; set; }
-
         [XmlElement("ProductModelItems")]
         public List<ProductVersionModel> ProductModelItems { get; set; }
         public string ReportsPath { get; set; }
         public string User { get; set; }
         public string Password { get; set; }
         public string ClearFolder { get; set; }
+        public string SysInfoFtpPath { get; set; }
+        [XmlElement("HttpConfiguration")]
+        public HttpConfiguration HttpConfiguration { get; set; }
     }
 }

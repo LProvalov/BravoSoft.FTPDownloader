@@ -81,5 +81,9 @@ namespace DBDownloader.ConfigReader
         public string Password { get { return model.Password; } }
         public string ReportsPath { get { return model.ReportsPath; } }
         public string ClearFolder { get { return model.ClearFolder; } }
+        public HttpEndpointsModel HttpEndpoints { get { return model.HttpConfiguration.HttpEndpoints; } }
+        public string HttpUser { get { return model.HttpConfiguration.User; } }
+        public string HttpPassword { get { return model.HttpConfiguration.Password; } }
+        public string SysInfoFtpPath { get { return model.SysInfoFtpPath; } }
     }
 }

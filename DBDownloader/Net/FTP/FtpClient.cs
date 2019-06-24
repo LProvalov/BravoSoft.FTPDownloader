@@ -467,6 +467,26 @@ namespace DBDownloader.Net.FTP
             }
         }
 
+        public void SendReportToServer(Stream reportStream, Uri destinationUri)
+        {
+            try
+            {
+                FtpWebRequest request = CreateWebRequest(destinationUri, WebRequestMethods.Ftp.UploadFile);
+                request.UseBinary = false;
+                request.KeepAlive = true;
+                using (Stream ftpStream = request.GetRequestStream())
+                {
+                    reportStream.CopyTo(ftpStream);
+                    ftpStream.Close();
+                }
+
+            } catch (WebException wEx)
+            {
+                string statusDescription = ((FtpWebResponse)wEx.Response).StatusDescription;
+                Log.WriteError("Report - Status Description: {0}", statusDescription);
+            }
+        }
+
         public long GetSourceFileSize(Uri sourceUri)
         {
             long sourceFileSize = 0;

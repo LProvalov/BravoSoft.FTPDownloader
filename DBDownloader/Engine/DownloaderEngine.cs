@@ -343,6 +343,8 @@ namespace DBDownloader.Engine
                 string reportDate = string.Format("d{0}{1}{2}t{3}{4}{5}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                 dataProvider.SendReportToServer(ReportWriter.GetReportInfo(), string.Format("{0}_{1}.txt", reportUri, reportDate));
 
+                SysInfo.SendSysInfoToFtp();
+
                 Status = Status.Stopped;
             }
         }
