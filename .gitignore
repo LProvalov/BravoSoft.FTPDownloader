@@ -3,5 +3,7 @@ CryptEncoder/bin/
 CryptEncoder/obj/
 DBDownloader/bin/
 DBDownloader/obj/
+DBDownloaderTests/bin/
+DBDownloaderTests/obj/
 packages/
 Crypt/obj/
