@@ -509,5 +509,10 @@ namespace DBDownloader.Net.FTP
             return sourceFileSize;
         }
 
+        public Uri GetSourceUri(string sourcePath)
+        {
+            Uri uri = new Uri(string.Format("ftp://{0}{1}", host, sourcePath));
+            return uri;
+        }
     }
 }

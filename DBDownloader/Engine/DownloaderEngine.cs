@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 using DBDownloader.ConfigReader;
 using DBDownloader.Models;
@@ -19,6 +20,7 @@ using DBDownloader.LOG;
 using DBDownloader.Providers;
 using DBDownloader.Net;
 using DBDownloader.Net.FTP;
+using DBDownloader.Net.HTTP;
 
 namespace DBDownloader.Engine
 {
@@ -169,18 +171,35 @@ namespace DBDownloader.Engine
                 string destinationFileStr = string.Format(@"{0}\{1}",
                     Configuration.Instance.DBDirectory.FullName,
                     tom.FileName);
-                string sourceFileUrl;
-                if (String.IsNullOrEmpty(tom.FullPathname))
+                string sourceFileUrl = "";
+                if (Configuration.Instance.NetClientType == NetFileDownloader.NetClientTypes.FTP)
                 {
-                    sourceFileUrl = string.Format(@"{0}//{1}/{2}",
-                        ftpConfiguration.FtpSourcePath,
-                        ftpConfiguration.DBPath, tom.FileName);
-                }
-                else
+                    if (String.IsNullOrEmpty(tom.FullPathname))
+                    {
+                        sourceFileUrl = string.Format(@"{0}//{1}/{2}",
+                            ftpConfiguration.FtpSourcePath,
+                            ftpConfiguration.DBPath, tom.FileName);
+                    }
+                    else
+                    {
+                        sourceFileUrl = string.Format(@"{0}//{1}/{2}",
+                            ftpConfiguration.FtpSourcePath,
+                            tom.FullPathname, tom.FileName);
+                    }
+                } else if (Configuration.Instance.NetClientType == NetFileDownloader.NetClientTypes.HTTP)
                 {
-                    sourceFileUrl = string.Format(@"{0}//{1}/{2}",
-                        ftpConfiguration.FtpSourcePath,
-                        tom.FullPathname, tom.FileName);
+                    //System.Linq.Expressions.
+                    try
+                    {
+                        var item = sizeDBDictionary.FirstOrDefault(info => info.Value.FileName.Equals(tom.FileName));
+                        sourceFileUrl = item.Key;
+                    }
+                    catch (ArgumentNullException anEx)
+                    {
+                        Messenger.Instance.Write(string.Format("DownloaderEngine was tried to build downloading query. File '{0}' can't be found in html.", tom.FileName),
+                            Messenger.Type.Log, Log.LogType.Error);
+                        continue;
+                    }
                 }
                 long sourceSize = 0;
                 bool isUpdateNeeded = false;
@@ -235,6 +254,7 @@ namespace DBDownloader.Engine
                 }
                 if (isUpdateNeeded) downloadedFtpFiles.Add(tom.FileName);
                 Log.WriteTrace("{0} isUpdateNeeded:{1}", tom.FileName, isUpdateNeeded);
+
                 loadingManager.AddFileToDownload(tom.Name, tom.FileName,
                     destinationFile, sourceFileUrl, creationFileDateTime,
                     isUpdateNeeded, sourceSize);

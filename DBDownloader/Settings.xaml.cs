@@ -59,6 +59,10 @@ namespace DBDownloader
                 {
                     configuration.DBDirectory = CreateIfNotExists(dbdirectoryTextBox.Text);
                 }
+                if (!string.IsNullOrEmpty(regFilePathTextBox.Text))
+                {
+                    configuration.RegFileInfo = new FileInfo(regFilePathTextBox.Text);
+                }
             } catch (IOException ioEx)
             {
                 MessageBox.Show("Can't save settings because operup or db can't be create.");

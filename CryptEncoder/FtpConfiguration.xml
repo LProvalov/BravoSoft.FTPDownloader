@@ -20,7 +20,7 @@
     <User>kodup</User>
     <Password>update</Password>
     <HttpEndpoints>
-      <BaseIp>82.208.93.53</BaseIp>
+      <BaseIp>82.208.93.53:4000</BaseIp>
       <Login>users/login.asp</Login>
       <DBList>kodup</DBList>
       <Xml>xml</Xml>

@@ -10,6 +10,7 @@ using DBDownloader.ConfigReader;
 using DBDownloader.Providers;
 using DBDownloader.Net;
 using DBDownloader.Net.FTP;
+using DBDownloader.Net.HTTP;
 
 namespace DBDownloader.Engine
 {
@@ -93,8 +94,15 @@ namespace DBDownloader.Engine
                 Configuration configuration = Configuration.Instance;
                 FileInfo destinationFileInfo = destinationFile;
                 Uri sourceFileUri = new Uri(sourceFileUrl);
+                INetClient netClient = null;
+                if (configuration.NetClientType == NetFileDownloader.NetClientTypes.FTP) {
+                    netClient = FtpClient.CreateClient();
+                } else
+                {
+                    netClient = HttpClient.CreateClient();
+                }
                 DownloadFile df = new DownloadFile(
-                    FtpClient.CreateClient(),
+                    netClient,
                     destinationFileInfo, sourceFileUri,
                     configuration.UseProxy, configuration.ProxyAddress, configuration.UsePassiveFTP,
                     creationFileDateTime,

@@ -12,6 +12,7 @@ namespace DBDownloader.Net
         public bool IsDirectory;
         public string CreateTime;
         public DateTime CreateDateTime;
+        public DateTime LastModifiedDateTime;
         public string Name;
         public double Length;
     }

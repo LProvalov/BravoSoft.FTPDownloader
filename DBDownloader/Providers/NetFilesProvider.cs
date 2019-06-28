@@ -30,7 +30,7 @@ namespace DBDownloader.XML
                 destinationFile.Delete();
                 destinationFile.Refresh();
             }
-            Uri sourceUri = new Uri(sourcePath);
+            Uri sourceUri = netClient.GetSourceUri(sourcePath);
             NetFileDownloader fileDownloader = NetFileDownloader.CreateFileDownloader(
                 netClient, destinationFile, sourceUri);
             fileDownloader.BeginAsync().Wait();

@@ -69,7 +69,7 @@ namespace DBDownloader.Net.HTTP
         public int RepeatCount { get; set; } = 10;
         public int DelayTime { get; set; } = 10000;
 
-        private Cookie authCookie = null;
+        private static Cookie authCookie = null;
         private List<Cookie> add_cookies = new List<Cookie>();
         private KodupPageParser kodupPageParser = new KodupPageParser();
 
@@ -91,7 +91,7 @@ namespace DBDownloader.Net.HTTP
             if (authCookie != null)
             {
                 request.CookieContainer = new CookieContainer();
-                request.CookieContainer.Add(authCookie);
+                request.CookieContainer.Add(uri, authCookie);
             }
 
             if (proxy_use)
@@ -130,6 +130,49 @@ namespace DBDownloader.Net.HTTP
                     byte[] buffer = new byte[BYTE_BUFFER_SIZE];
                     int readByteSize = responseStream.Read(buffer, 0, BYTE_BUFFER_SIZE);
                     while (readByteSize != 0)
+                    {
+                        fileStream.Write(buffer, 0, readByteSize);
+                        bytesDownloaded += readByteSize;
+                        readByteSize = responseStream.Read(buffer, 0, BYTE_BUFFER_SIZE);
+                    }
+                }
+            }
+            finally
+            {
+                if (fileStream != null)
+                {
+                    fileStream.Close();
+                }
+            }
+            return true;
+        }
+
+        public bool DownloadFile(Uri sourceFile, FileInfo destinationFileInfo, CancellationTokenSource cancellationToken)
+        {
+            HttpWebRequest request = CreateHttpRequest(sourceFile, WebRequestMethods.Http.Get);
+            FileStream fileStream = null;
+            try
+            {
+                if (destinationFileInfo.Exists)
+                {
+                    request.AddRange(destinationFileInfo.Length);
+                    fileStream = destinationFileInfo.OpenWrite();
+                    fileStream.Seek(fileStream.Length, SeekOrigin.Current);
+                    bytesDownloaded = destinationFileInfo.Length;
+                }
+                else
+                {
+                    fileStream = new FileStream(destinationFileInfo.FullName, FileMode.Create);
+                    bytesDownloaded = 0;
+                }
+
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+                {
+                    Stream responseStream = response.GetResponseStream();
+                    byte[] buffer = new byte[BYTE_BUFFER_SIZE];
+                    int readByteSize = responseStream.Read(buffer, 0, BYTE_BUFFER_SIZE);
+                    while (readByteSize != 0 && 
+                        (cancellationToken != null ? !cancellationToken.IsCancellationRequested : false))
                     {
                         fileStream.Write(buffer, 0, readByteSize);
                         bytesDownloaded += readByteSize;
@@ -193,7 +236,7 @@ namespace DBDownloader.Net.HTTP
 
             CheckAndUpdateAuth(db_list);
 
-            FileStruct[] fileStructs = null;
+            List<FileStruct> fileStructs = new List<FileStruct>();
 
             Uri uri = new Uri(string.Format("http://{0}{1}", server_ip, db_list));
             var request = CreateHttpRequest(uri, WebRequestMethods.Http.Get);
@@ -227,8 +270,20 @@ namespace DBDownloader.Net.HTTP
                 }
                 response.Close();
             }
-
-            return fileStructs;
+            if (kodupPageParser != null && kodupPageParser.GetDatabaseFileList() != null && kodupPageParser.GetDatabaseFileList().Length > 0)
+            {
+                foreach(var item in kodupPageParser.GetDatabaseFileList())
+                {
+                    fileStructs.Add(new FileStruct()
+                    {
+                        Name = item.Name,
+                        Length = item.Size,
+                        IsDirectory = false,
+                        LastModifiedDateTime = item.LastModified
+                    });
+                }
+            }
+            return fileStructs.ToArray();
         }
 
         private void GetAuthCookie(string path_endpoint)
@@ -264,7 +319,7 @@ namespace DBDownloader.Net.HTTP
                                 string[] item_values = item.Trim().Split('=');
                                 if (item_values[0].Equals("Auth"))
                                 {
-                                    authCookie = new Cookie("Auth", item_values[1]) { Domain = request.Host };
+                                    authCookie = new Cookie("Auth", item_values[1]); //{ Domain = request.Host }
                                 }
                                 else
                                 {
@@ -287,5 +342,10 @@ namespace DBDownloader.Net.HTTP
             throw new NotImplementedException();
         }
 
+        public Uri GetSourceUri(string sourcePath)
+        {
+            Uri uri = new Uri(string.Format("http://{0}/{1}", server_ip, sourcePath));
+            return uri;
+        }
     }
 }

@@ -39,6 +39,10 @@ namespace DBDownloader.Providers
                         DateTime? lastModified = (netClient as FtpClient).GetLastModifiedFileDate(filePath);
                         if (lastModified.HasValue) fileInfo.LastModified = lastModified.Value;
                     }
+                    if (netClient is HttpClient)
+                    {
+                        fileInfo.LastModified = item.LastModifiedDateTime;
+                    }
                     filesDict.Add(filePath, fileInfo);
                 }
             }

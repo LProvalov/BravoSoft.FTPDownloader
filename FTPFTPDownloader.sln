@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Express 15 for Windows Desktop
+VisualStudioVersion = 15.0.28307.645
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBDownloader", "DBDownloader\DBDownloader.csproj", "{054DE01A-2164-4662-9476-73A0723E4EC6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Crypt", "Crypt\Crypt.csproj", "{4E80BCC2-EABA-4B0A-82E0-3BF098E4AAAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CryptEncoder", "CryptEncoder\CryptEncoder.csproj", "{3C58DE7F-B589-4A59-8236-619F240EA582}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBDownloaderTests", "DBDownloaderTests\DBDownloaderTests.csproj", "{7DF4813D-1EC8-453C-B527-04A54D5C769A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,8 +29,15 @@ Global
 		{3C58DE7F-B589-4A59-8236-619F240EA582}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3C58DE7F-B589-4A59-8236-619F240EA582}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3C58DE7F-B589-4A59-8236-619F240EA582}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DF4813D-1EC8-453C-B527-04A54D5C769A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DF4813D-1EC8-453C-B527-04A54D5C769A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DF4813D-1EC8-453C-B527-04A54D5C769A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DF4813D-1EC8-453C-B527-04A54D5C769A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {071DDBBD-5856-45DF-9833-BA833556CC55}
 	EndGlobalSection
 EndGlobal
