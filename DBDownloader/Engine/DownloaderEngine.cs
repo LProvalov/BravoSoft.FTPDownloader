@@ -97,16 +97,12 @@ namespace DBDownloader.Engine
             Log.WriteInfo("DownloaderManager GetListOfToms");
             NetFilesProvider netFilesProvider = new NetFilesProvider();
 
-            //string autocomplectsFileName =
-            //    string.Format(AUTOCOMPLECTS_FILENAME_TEMPLATE, regFileSearch.DistributorCode);
-
             Messenger.Instance.Write("autocomplect file downloading...", Messenger.Type.ApplicationBroadcast);
             FtpConfiguration ftpConfiguration = FtpConfiguration.Instance;
-            
+
             FileInfo autoComplectFileInfo = netFilesProvider.GetFile(
                 string.Format(@"{0}\{1}", CONFIG_FILE_STORAGE, FilesPathProvider.AutocomplectsFileName),
                 FilesPathProvider.GetAutoComplectFileInfo());
-                //string.Format(@"{0}/{1}", ftpConfiguration.AutocomplectsPath, FilesPathProvider.AutocomplectsFileName));
 
             Messenger.Instance.Write("Product files downloading...", Messenger.Type.ApplicationBroadcast);
             IEnumerable<FileInfo> productFiles =
@@ -154,8 +150,6 @@ namespace DBDownloader.Engine
 
             Log.WriteTrace("Initialize - ftp worker");
 
-            //string dbUriStr = string.Format(@"{0}//{1}",
-            //  ftpConfiguration.FtpSourcePath, ftpConfiguration.DBPath);
             string dbUriStr = FilesPathProvider.GetDBPath();
             Dictionary<string, NetFileInfo> sizeDBDictionary = dataProvider.GetDBListWithSize(new Uri(dbUriStr));
             if (sizeDBDictionary.Count == 0) throw new Exception(
@@ -176,7 +170,7 @@ namespace DBDownloader.Engine
                 {
                     if (String.IsNullOrEmpty(tom.FullPathname))
                     {
-                        sourceFileUrl = string.Format(@"{0}//{1}/{2}",
+                        sourceFileUrl = string.Format(@"{0}/{1}/{2}",
                             ftpConfiguration.FtpSourcePath,
                             ftpConfiguration.DBPath, tom.FileName);
                     }
@@ -188,7 +182,6 @@ namespace DBDownloader.Engine
                     }
                 } else if (Configuration.Instance.NetClientType == NetFileDownloader.NetClientTypes.HTTP)
                 {
-                    //System.Linq.Expressions.
                     try
                     {
                         var item = sizeDBDictionary.FirstOrDefault(info => info.Value.FileName.Equals(tom.FileName));

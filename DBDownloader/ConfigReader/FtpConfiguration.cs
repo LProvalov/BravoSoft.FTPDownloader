@@ -72,7 +72,7 @@ namespace DBDownloader.ConfigReader
         {
             get
             {
-                return string.Format(@"{0}/{1}", model.FtpSourcePath, model.AutocomplectsPath);
+                return model.AutocomplectsPath;
             }
         }
         public string ProductsPath
