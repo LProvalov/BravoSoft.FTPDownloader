@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -471,7 +472,7 @@ namespace DBDownloader.Net.FTP
         {
             try
             {
-                FtpWebRequest request = CreateWebRequest(destinationUri, WebRequestMethods.Ftp.UploadFile);
+                FtpWebRequest request = CreateWebRequest(destinationUri, WebRequestMethods.Ftp.AppendFile);
                 request.UseBinary = false;
                 request.KeepAlive = true;
                 using (Stream ftpStream = request.GetRequestStream())
@@ -480,7 +481,28 @@ namespace DBDownloader.Net.FTP
                     ftpStream.Close();
                 }
 
-            } catch (WebException wEx)
+            }
+            catch (WebException wEx)
+            {
+                string statusDescription = ((FtpWebResponse)wEx.Response).StatusDescription;
+                Log.WriteError("Report - Status Description: {0}", statusDescription);
+            }
+        }
+
+        public void SendReportToServer(StreamContent streamContent, Uri destinationUri)
+        {
+            try
+            {
+                FtpWebRequest request = CreateWebRequest(destinationUri, WebRequestMethods.Ftp.UploadFile);
+                request.UseBinary = false;
+                request.KeepAlive = true;
+                using (Stream ftpStream = request.GetRequestStream())
+                {
+                    streamContent.CopyToAsync(ftpStream).Wait();
+                    ftpStream.Close();
+                }
+            }
+            catch (WebException wEx)
             {
                 string statusDescription = ((FtpWebResponse)wEx.Response).StatusDescription;
                 Log.WriteError("Report - Status Description: {0}", statusDescription);

@@ -87,6 +87,8 @@ namespace DBDownloader.Net.HTTP
             request.Headers.Add("Accept-Encoding", "gzip, deflate");
             request.Headers.Add("Accept-Language", "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
             request.Host = server_ip;
+            request.AllowAutoRedirect = true;
+            request.MaximumAutomaticRedirections = 2;
             request.AutomaticDecompression = DecompressionMethods.GZip;
             if (authCookie != null)
             {
@@ -337,9 +339,16 @@ namespace DBDownloader.Net.HTTP
             }
         }
 
-        public HttpWebResponse GetHttpWebResponse(Uri uri, string httpMethod)
+        public HttpWebResponse GetHttpWebResponse(Uri uri, string httpMethod, bool isAuthNeeded = false)
         {
-            throw new NotImplementedException();
+            if (uri != null)
+            {
+                if (isAuthNeeded) CheckAndUpdateAuth(uri.AbsolutePath);
+                var request = CreateHttpRequest(uri, httpMethod);
+                var response = request.GetResponse();
+                return response as HttpWebResponse;
+            }
+            throw new ArgumentNullException("Uri can't be null");
         }
 
         public Uri GetSourceUri(string sourcePath)

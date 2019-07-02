@@ -13,9 +13,9 @@
   <User>user1</User>
   <Password>1q2w3e</Password>
   <ClearFolder>operup/new</ClearFolder>
-  <SysInfoAddrService>http://apple:8080</SysInfoAddrService>
+  <SysInfoAddrService>http://82.208.93.53:4000</SysInfoAddrService>
   <SysInfoReportUrl>/sysinfo/si_save_request?blocks=(about)(data_bases)(products)(licenses)(operupdates)(speedtest)(statistic)(survey)(system)</SysInfoReportUrl>
-  <SysInfoFtpPath></SysInfoFtpPath>
+  <SysInfoFtpPath>ftp://82.208.93.53/Kodweb/sysinfo</SysInfoFtpPath>
   <HttpConfiguration>
     <User>kodup</User>
     <Password>update</Password>

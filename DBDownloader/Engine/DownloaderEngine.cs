@@ -21,6 +21,7 @@ using DBDownloader.Providers;
 using DBDownloader.Net;
 using DBDownloader.Net.FTP;
 using DBDownloader.Net.HTTP;
+using DBDownloader.Services;
 
 namespace DBDownloader.Engine
 {
@@ -435,13 +436,17 @@ namespace DBDownloader.Engine
 
         public Task StartAsync()
         {
-            Log.WriteInfo("DownloaderEngine StartAsync {0}", DateTime.Now);
-            if (Status == Status.Stopped)
+            if (!DemoService.IsAvailable())
             {
-                processingTask = Task.Factory.StartNew(Processing);
-                return processingTask;
+                Log.WriteInfo("DownloaderEngine StartAsync {0}", DateTime.Now);
+                if (Status == Status.Stopped)
+                {
+                    processingTask = Task.Factory.StartNew(Processing);
+                    return processingTask;
+                }
+                throw new Exception("Can't start new download until previous one ends.");
             }
-            throw new Exception("Can't start new download until previous one ends.");
+            throw new Exception("Demo version of product can't be started.");
         }
 
         public void Stop()

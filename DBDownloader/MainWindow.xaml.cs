@@ -10,6 +10,7 @@ using DBDownloader.Engine;
 using System.IO;
 using DBDownloader.LOG;
 using DBDownloader.Services;
+using System.Windows.Media;
 
 namespace DBDownloader
 {
@@ -72,6 +73,12 @@ namespace DBDownloader
                 new NoArgDelegate(FirstStartInitialization),
                 System.Windows.Threading.DispatcherPriority.Input,
                 null);
+
+            if (DemoService.IsDemo())
+            {
+                this.Title = "Kodup - Demo, " + DemoService.AvailableUntil();
+                this.MenuBar.Background = Brushes.OrangeRed;
+            }
         }
 
         private void FirstStartInitialization()
@@ -166,7 +173,16 @@ namespace DBDownloader
         }
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
-            start();
+            if (DemoService.IsAvailable())
+            {
+                MessageBox.Show("This is a demo version of Kodup application. Application has been provided for one month. Now It is unavailable for using.", 
+                    "Demo Version is unavailable anymore.",
+                    MessageBoxButton.OK);
+            }
+            else
+            {
+                start();
+            }
         }
         private void start()
         {
@@ -178,26 +194,35 @@ namespace DBDownloader
 
         private void scheduleButton_Click(object sender, RoutedEventArgs e)
         {
-            Log.WriteInfo("scheduler button click");
-            //this.IsEnabled = false;
-            Configuration configuration = Configuration.GetInstance();
-            Scheduler schedulerWindow = new Scheduler(schedulerModel);
-            schedulerWindow.Left = this.Left + this.Width / 2 - schedulerWindow.Width / 2;
-            schedulerWindow.Top = this.Top + this.Height / 2 - schedulerWindow.Height / 2;
-            bool? dialogResult = schedulerWindow.ShowDialog();
-            if (dialogResult.HasValue && dialogResult.Value)
+            if (DemoService.IsAvailable())
             {
-                configuration.DelayedStart = DateTime.Now.AddMinutes(schedulerModel.DelayedMins);
-                configuration.SaveConfiguration();
-                ButtonsEnableDisable(ButtonsEnable.Stop);
-                DownloadEngine.DelayedStart = configuration.DelayedStart;
-                DownloadEngine.StartAsync();
+                MessageBox.Show("This is a demo version of Kodup application. Application has been provided for one month. Now It is unavailable for using.",
+                    "Demo Version is unavailable anymore.",
+                    MessageBoxButton.OK);
             }
             else
             {
-                configuration.DelayedStart = DateTime.Now;
-                configuration.SaveConfiguration();
-                ButtonsEnableDisable(ButtonsEnable.Settings|ButtonsEnable.Start|ButtonsEnable.Schedule);
+                Log.WriteInfo("scheduler button click");
+                //this.IsEnabled = false;
+                Configuration configuration = Configuration.GetInstance();
+                Scheduler schedulerWindow = new Scheduler(schedulerModel);
+                schedulerWindow.Left = this.Left + this.Width / 2 - schedulerWindow.Width / 2;
+                schedulerWindow.Top = this.Top + this.Height / 2 - schedulerWindow.Height / 2;
+                bool? dialogResult = schedulerWindow.ShowDialog();
+                if (dialogResult.HasValue && dialogResult.Value)
+                {
+                    configuration.DelayedStart = DateTime.Now.AddMinutes(schedulerModel.DelayedMins);
+                    configuration.SaveConfiguration();
+                    ButtonsEnableDisable(ButtonsEnable.Stop);
+                    DownloadEngine.DelayedStart = configuration.DelayedStart;
+                    DownloadEngine.StartAsync();
+                }
+                else
+                {
+                    configuration.DelayedStart = DateTime.Now;
+                    configuration.SaveConfiguration();
+                    ButtonsEnableDisable(ButtonsEnable.Settings | ButtonsEnable.Start | ButtonsEnable.Schedule);
+                }
             }
         }
         private void stopButton_Click(object sender, RoutedEventArgs e)
