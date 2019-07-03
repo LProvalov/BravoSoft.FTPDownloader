@@ -51,6 +51,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Engine\DownloaderEngineTests.cs" />
     <Compile Include="Engine\SysInfoTests.cs" />
     <Compile Include="Net\HTTP\KodupPageParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

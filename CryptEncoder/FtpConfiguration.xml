@@ -12,7 +12,7 @@
   <ReportsPath>update_logs</ReportsPath>
   <User>user1</User>
   <Password>1q2w3e</Password>
-  <ClearFolder>operup/new</ClearFolder>
+  <ClearFolder>operup</ClearFolder>
   <SysInfoAddrService>http://82.208.93.53:4000</SysInfoAddrService>
   <SysInfoReportUrl>/sysinfo/si_save_request?blocks=(about)(data_bases)(products)(licenses)(operupdates)(speedtest)(statistic)(survey)(system)</SysInfoReportUrl>
   <SysInfoFtpPath>ftp://82.208.93.53/Kodweb/sysinfo</SysInfoFtpPath>
@@ -22,7 +22,8 @@
     <HttpEndpoints>
       <BaseIp>82.208.93.53:4000</BaseIp>
       <Login>users/login.asp</Login>
-      <DBList>kodup</DBList>
+      <DBList>kodup_base</DBList>
+      <OperUp>kodup_operup</OperUp>
       <Xml>xml</Xml>
     </HttpEndpoints>
   </HttpConfiguration>

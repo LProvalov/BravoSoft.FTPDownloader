@@ -72,5 +72,38 @@ namespace DBDownloader.Providers
             }
             throw new ArgumentException("Wrong net client type");
         }
+
+        public static string GetOperUpFilePath(string name)
+        {
+            if (Configuration.Instance.NetClientType == Net.NetFileDownloader.NetClientTypes.FTP)
+            {
+                return string.Format(@"{0}/{1}",
+                                //FtpConfiguration.Instance.FtpSourcePath,
+                                FtpConfiguration.Instance.ClearFolder, name);
+            }
+            if (Configuration.Instance.NetClientType == Net.NetFileDownloader.NetClientTypes.HTTP)
+            {
+                if (string.IsNullOrEmpty(name)) return "/" + FtpConfiguration.Instance.HttpEndpoints.OperUp;
+                return string.Format(@"{0}/{1}",
+                    //FtpConfiguration.Instance.HttpEndpoints.BaseIp,
+                    FtpConfiguration.Instance.HttpEndpoints.OperUp, name);
+            }
+            throw new NotImplementedException();
+        }
+
+        public static string GetBaseUri(string path)
+        {
+            if (Configuration.Instance.NetClientType == Net.NetFileDownloader.NetClientTypes.FTP)
+            {
+                return string.Format(@"{0}/{1}",
+                                FtpConfiguration.Instance.FtpSourcePath, path);
+            }
+            if (Configuration.Instance.NetClientType == Net.NetFileDownloader.NetClientTypes.HTTP)
+            {
+                return string.Format(@"{0}/{1}",
+                    FtpConfiguration.Instance.HttpEndpoints.BaseIp, path);
+            }
+            throw new NotImplementedException();
+        }
     }
 }

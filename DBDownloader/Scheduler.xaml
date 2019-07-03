@@ -12,10 +12,11 @@
             <RowDefinition Height="50*"/>
             <RowDefinition Height="50"/>
         </Grid.RowDefinitions>
-        <Label Grid.Row="0">Укажите время отложенного запуска</Label>
+        <Label Grid.Row="0">Укажите время отложенного запуска в минутах</Label>
         <TextBox x:Name="delayedTimeTextBox" Grid.Row="1" Text=""
                               Height="23"
-                             Margin="10,10" TextAlignment="Right" TextChanged="delayedTimeTextBox_TextChanged"></TextBox>
+                             Margin="10,10" TextAlignment="Right" TextChanged="delayedTimeTextBox_TextChanged">
+        </TextBox>
         
         <Button x:Name="saveButton" Grid.Row="2" VerticalAlignment="Bottom" 
                 HorizontalAlignment="Right" Margin="10,10,120,10" 

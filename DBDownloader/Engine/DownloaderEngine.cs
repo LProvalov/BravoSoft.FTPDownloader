@@ -126,7 +126,8 @@ namespace DBDownloader.Engine
             if (ftpConfiguration.ProductModelItems != null && ftpConfiguration.ProductModelItems.Count > 0)
             {
                 productListName = ftpConfiguration.ProductModelItems[0].ProductFileName;
-            } else
+            }
+            else
             {
                 Log.WriteError("Product List Name doesn't define in FtpConfiguration!");
             }
@@ -181,7 +182,8 @@ namespace DBDownloader.Engine
                             ftpConfiguration.FtpSourcePath,
                             tom.FullPathname, tom.FileName);
                     }
-                } else if (Configuration.Instance.NetClientType == NetFileDownloader.NetClientTypes.HTTP)
+                }
+                else if (Configuration.Instance.NetClientType == NetFileDownloader.NetClientTypes.HTTP)
                 {
                     try
                     {
@@ -240,7 +242,7 @@ namespace DBDownloader.Engine
                         isUpdateNeeded = false;
                     }
                 }
-                else 
+                else
                 {
                     Log.WriteTrace("{0} no file on FTP", tom.FileName);
                     missingFtpFiles.Add(tom.FileName);
@@ -350,7 +352,8 @@ namespace DBDownloader.Engine
                 Log.WriteInfo("Trying to start KTServices");
                 KTServices.Instance.Start();
 
-                string reportDate = string.Format("d{0}{1}{2}t{3}{4}{5}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
+                string reportDate = string.Format("d{0}{1}{2}t{3}{4}{5}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
+                    DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second);
                 dataProvider.SendReportToServer(ReportWriter.GetReportInfo(), string.Format("{0}_{1}.txt", reportUri, reportDate));
 
                 SysInfo.SendSysInfoToFtp();
@@ -374,21 +377,31 @@ namespace DBDownloader.Engine
                         if (file.Exists) file.Delete();
                     }
 
-                    FileStruct[] listDirectory = dataProvider.ListDirectory(FtpConfiguration.Instance.ClearFolder);
+                    string listPathUrlStr = FilesPathProvider.GetOperUpFilePath("");
+               
+                    FileStruct[] listDirectory = dataProvider.ListDirectory(listPathUrlStr);
+                    NetFilesProvider netFilesProvider = new NetFilesProvider();
                     foreach (var item in listDirectory)
                     {
                         if (!item.IsDirectory)
                         {
                             Messenger.Instance.Write(string.Format("Downloading operup file: {0}", item.Name),
                                 Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
-                            FileInfo destinationFile = new FileInfo(string.Format(@"{0}\{1}", 
-                                configuration.OperationalUpdateDirectory.FullName, 
-                                item.Name));
-                            Uri sourceFile = new Uri(string.Format("{0}/{1}/{2}", 
-                                FtpConfiguration.Instance.FtpSourcePath, 
-                                FtpConfiguration.Instance.ClearFolder, item.Name));
-                            FTPDownloader itemDownloader = new FTPDownloader(FtpClient.CreateClient(), destinationFile, sourceFile);
-                            itemDownloader.BeginAsync().Wait();
+                            string destinationFilePath = string.Format(@"{0}\{1}",
+                                configuration.OperationalUpdateDirectory.FullName, item.Name);
+
+                            string sourceFile = FilesPathProvider.GetOperUpFilePath(item.Name);
+                            //sourceFile = FilesPathProvider.GetBaseUri(sourceFile);
+
+                            try
+                            {
+                                netFilesProvider.GetFile(destinationFilePath, sourceFile);
+                            }
+                            catch (Exception ex)
+                            {
+                                Messenger.Instance.Write(string.Format("Error has occurred when file'{0}' was downloading. Msg: {1}", 
+                                    item.Name, ex.Message), Messenger.Type.Log, Log.LogType.Error);
+                            }
                         }
                     }
                     Messenger.Instance.Write(string.Format("Operup update finished"),

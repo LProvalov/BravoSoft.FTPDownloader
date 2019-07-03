@@ -31,7 +31,7 @@ namespace DBDownloader.Net.HTTP
         [Obsolete("Use GetListKodup instead")]
         public FileStruct[] ListDirectory(string path)
         {
-            return GetListKodup();
+            return GetListKodup(path);
         }
 
         private HttpWebRequest CreateWebRequest(Uri uri, string method)
@@ -233,14 +233,14 @@ namespace DBDownloader.Net.HTTP
             });
         }
 
-        public FileStruct[] GetListKodup()
+        public FileStruct[] GetListKodup(string path)
         {
 
-            CheckAndUpdateAuth(db_list);
+            CheckAndUpdateAuth(path);
 
             List<FileStruct> fileStructs = new List<FileStruct>();
 
-            Uri uri = new Uri(string.Format("http://{0}{1}", server_ip, db_list));
+            Uri uri = new Uri(string.Format("http://{0}{1}", server_ip, path));
             var request = CreateHttpRequest(uri, WebRequestMethods.Http.Get);
 
             try
