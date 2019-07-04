@@ -18,7 +18,19 @@ namespace DBDownloader
         {
             Configuration configuration = Configuration.GetInstance();
             InitializeComponent();
-            if(configuration.RegFileInfo != null) regFilePathTextBox.Text = configuration.RegFileInfo.FullName;
+            switch (configuration.NetClientType)
+            {
+                case Net.NetFileDownloader.NetClientTypes.FTP:
+                    RBFtpType.IsChecked = true;
+                    break;
+                case Net.NetFileDownloader.NetClientTypes.HTTP:
+                    RBHttpType.IsChecked = true;
+                    break;
+                default:
+                    RBFtpType.IsChecked = true;
+                    break;
+            }
+            if (configuration.RegFileInfo != null) regFilePathTextBox.Text = configuration.RegFileInfo.FullName;
             if(configuration.OperationalUpdateDirectory != null)
                 oprationalUpdateTextBox.Text = configuration.OperationalUpdateDirectory.FullName;
             if (configuration.DBDirectory != null)
@@ -63,6 +75,11 @@ namespace DBDownloader
                 {
                     configuration.RegFileInfo = new FileInfo(regFilePathTextBox.Text);
                 }
+                configuration.NetClientType = Net.NetFileDownloader.NetClientTypes.FTP; //default value is FTP
+                if (RBFtpType.IsChecked.HasValue && RBFtpType.IsChecked.Value)
+                    configuration.NetClientType = Net.NetFileDownloader.NetClientTypes.FTP;
+                if (RBHttpType.IsChecked.HasValue && RBHttpType.IsChecked.Value)
+                    configuration.NetClientType = Net.NetFileDownloader.NetClientTypes.HTTP;
             } catch (IOException ioEx)
             {
                 MessageBox.Show("Can't save settings because operup or db can't be create.");

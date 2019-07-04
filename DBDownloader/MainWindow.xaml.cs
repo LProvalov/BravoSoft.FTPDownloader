@@ -126,15 +126,6 @@ namespace DBDownloader
                     null);
             };
 
-            /*
-            DownloadEngine.SendConsoleMessage += (obj, arg) =>
-            {
-                this.consoleTextBox.Dispatcher.BeginInvoke(
-                    new StringArgDelegate(AddTextToConsole),
-                    System.Windows.Threading.DispatcherPriority.Background,
-                    arg.Text);
-            };*/
-
             DownloadEngine.StatusChangeEvent += (obj, args) =>
             {
                 this.statusTextBlock.Dispatcher.BeginInvoke(
@@ -203,7 +194,6 @@ namespace DBDownloader
             else
             {
                 Log.WriteInfo("scheduler button click");
-                //this.IsEnabled = false;
                 Configuration configuration = Configuration.GetInstance();
                 Scheduler schedulerWindow = new Scheduler(schedulerModel);
                 schedulerWindow.Left = this.Left + this.Width / 2 - schedulerWindow.Width / 2;
@@ -258,16 +248,6 @@ namespace DBDownloader
             {
                 ButtonsEnableDisable(ButtonsEnable.Settings);
             }
-        }
-
-        private void netSettingsWindowShow()
-        {
-            IsEnabled = false;
-            NetSettings netSettingsWindow = new NetSettings();
-            netSettingsWindow.Left = Left + Width / 2 - netSettingsWindow.Width / 2;
-            netSettingsWindow.Top = Top + Height / 2 - netSettingsWindow.Height / 2;
-            bool? dialogResult = netSettingsWindow.ShowDialog();
-            IsEnabled = true;
         }
 
         private void expander_Collapsed(object sender, RoutedEventArgs e)
@@ -365,11 +345,6 @@ namespace DBDownloader
                     while (DownloadEngine.Status != Status.Stopped) Thread.Sleep(500);
                 }
             }
-        }
-
-        private void NetSettingMenuItem_Click(object sender, RoutedEventArgs e)
-        {
-            netSettingsWindowShow();
         }
     }
 }
