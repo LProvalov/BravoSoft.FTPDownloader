@@ -19,8 +19,15 @@ namespace DBDownloader.Providers
         public DataProvider()
         {
             if (Configuration.Instance.NetClientType == NetClientTypes.FTP)
+            {
+                Log.WriteTrace("Data provider. FtpClient was created");
                 netClient = FtpClient.CreateClient();
-            else netClient = HttpClient.CreateClient();
+            }
+            else
+            {
+                Log.WriteTrace("Data provider. HttpClient was created");
+                netClient = HttpClient.CreateClient();
+            }
         }
 
         public Dictionary<string, NetFileInfo> GetDBListWithSize(Uri dbDirUri)

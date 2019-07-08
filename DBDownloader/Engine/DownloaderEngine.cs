@@ -164,6 +164,7 @@ namespace DBDownloader.Engine
 
             foreach (Tom tom in GetListOfToms())
             {
+                bool skip = false;
                 string destinationFileStr = string.Format(@"{0}\{1}",
                     Configuration.Instance.DBDirectory.FullName,
                     tom.FileName);
@@ -188,7 +189,13 @@ namespace DBDownloader.Engine
                     try
                     {
                         var item = sizeDBDictionary.FirstOrDefault(info => info.Value.FileName.Equals(tom.FileName));
-                        sourceFileUrl = item.Key;
+                        if (string.IsNullOrEmpty(item.Key) || item.Value == null)
+                        {
+                            Messenger.Instance.Write(string.Format("File ({0}) wasn't found for downloading.", tom.FileName), 
+                                Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
+                            sourceFileUrl = string.Empty;
+                            skip = true;
+                        } else sourceFileUrl = item.Key;
                     }
                     catch (ArgumentNullException anEx)
                     {
@@ -199,6 +206,7 @@ namespace DBDownloader.Engine
                 }
                 long sourceSize = 0;
                 bool isUpdateNeeded = false;
+                
                 DateTime creationFileDateTime = new DateTime();
                 FileInfo destinationFile = new FileInfo(destinationFileStr);
 
@@ -251,7 +259,8 @@ namespace DBDownloader.Engine
                 if (isUpdateNeeded) downloadedFtpFiles.Add(tom.FileName);
                 Log.WriteTrace("{0} isUpdateNeeded:{1}", tom.FileName, isUpdateNeeded);
 
-                loadingManager.AddFileToDownload(tom.Name, tom.FileName,
+                if (!skip)
+                    loadingManager.AddFileToDownload(tom.Name, tom.FileName,
                     destinationFile, sourceFileUrl, creationFileDateTime,
                     isUpdateNeeded, sourceSize);
             }
@@ -366,7 +375,12 @@ namespace DBDownloader.Engine
         {
             try
             {
+                dataProvider = new DataProvider();
                 Configuration configuration = Configuration.Instance;
+                Messenger.Instance.Write(string.Format("Update OperUp... Protocol Type: {0}", 
+                    configuration.NetClientType.ToString()), 
+                    Messenger.Type.ApplicationBroadcast | Messenger.Type.Log);
+                
                 if (configuration.OperationalUpdateDirectory.Exists)
                 {
                     Messenger.Instance.Write(string.Format("Trying to clean {0}", configuration.OperationalUpdateDirectory.FullName),
@@ -378,7 +392,8 @@ namespace DBDownloader.Engine
                     }
 
                     string listPathUrlStr = FilesPathProvider.GetOperUpFilePath("");
-               
+                    Messenger.Instance.Write(string.Format("OperUp url str: {0}", listPathUrlStr), Messenger.Type.Log);
+
                     FileStruct[] listDirectory = dataProvider.ListDirectory(listPathUrlStr);
                     NetFilesProvider netFilesProvider = new NetFilesProvider();
                     foreach (var item in listDirectory)
@@ -391,7 +406,6 @@ namespace DBDownloader.Engine
                                 configuration.OperationalUpdateDirectory.FullName, item.Name);
 
                             string sourceFile = FilesPathProvider.GetOperUpFilePath(item.Name);
-                            //sourceFile = FilesPathProvider.GetBaseUri(sourceFile);
 
                             try
                             {
@@ -449,7 +463,8 @@ namespace DBDownloader.Engine
 
         public Task StartAsync()
         {
-            if (!DemoService.IsAvailable())
+            dataProvider = new DataProvider();
+            if (DemoService.IsAvailable())
             {
                 Log.WriteInfo("DownloaderEngine StartAsync {0}", DateTime.Now);
                 if (Status == Status.Stopped)

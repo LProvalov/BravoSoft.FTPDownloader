@@ -16,12 +16,17 @@ namespace DBDownloader.Services
 
         public static bool IsDemo()
         {
-            return true;
+            return false;
         }
         public static bool IsAvailable()
         {
-            if (DateTime.Now > availableTo) return true;
-            return false;
+            if (IsDemo())
+            {
+                if (DateTime.Now > availableTo) return true;
+                return false;
+            }
+            else
+                return true;
         }
     }
 }

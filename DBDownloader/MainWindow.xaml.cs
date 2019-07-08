@@ -164,7 +164,7 @@ namespace DBDownloader
         }
         private void startButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DemoService.IsAvailable())
+            if (!DemoService.IsAvailable())
             {
                 MessageBox.Show("This is a demo version of Kodup application. Application has been provided for one month. Now It is unavailable for using.", 
                     "Demo Version is unavailable anymore.",
@@ -185,7 +185,7 @@ namespace DBDownloader
 
         private void scheduleButton_Click(object sender, RoutedEventArgs e)
         {
-            if (DemoService.IsAvailable())
+            if (!DemoService.IsAvailable())
             {
                 MessageBox.Show("This is a demo version of Kodup application. Application has been provided for one month. Now It is unavailable for using.",
                     "Demo Version is unavailable anymore.",

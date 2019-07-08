@@ -17,10 +17,7 @@
             <RowDefinition Height="35"/>
         </Grid.RowDefinitions>
 
-        <Menu Name="MenuBar" Grid.Row="0" Height="20">
-            <!--<MenuItem Header="Настройки">
-                <MenuItem Name="NetSettingMenuItem" Header="Сеть" Click="NetSettingMenuItem_Click"></MenuItem>
-            </MenuItem>-->
+        <Menu Name="MenuBar" Grid.Row="0" Height="0">
         </Menu>
 
         <Grid Grid.Row="1" Margin="10,0,10,0">
