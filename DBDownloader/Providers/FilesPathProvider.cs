@@ -61,7 +61,7 @@ namespace DBDownloader.Providers
         {
             if (Configuration.Instance.NetClientType == Net.NetFileDownloader.NetClientTypes.FTP)
             {
-                return string.Format(@"{0}//{1}",
+                return string.Format(@"{0}/{1}",
                     FtpConfiguration.Instance.FtpSourcePath, FtpConfiguration.Instance.DBPath);
             }
             if (Configuration.Instance.NetClientType == Net.NetFileDownloader.NetClientTypes.HTTP)
